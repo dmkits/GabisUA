@@ -1,0 +1,20 @@
+{
+  "name": "garbis_tel_bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "express": "^4.16.2",
+    "fs": "0.0.1-security",
+    "mssql": "^4.1.0",
+    "node-telegram-bot-api": "^0.30.0",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
