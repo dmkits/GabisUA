@@ -1,8 +1,17 @@
+var Promise = require('bluebird');
 var mssql=require('mssql');
 var fs= require('fs');
 var path=require('path');
-var dbConnected;
+var DbConnectionError=null;
 
+Promise.config({
+    cancellation: true
+});
+
+
+module.exports.getDbConnectionError= function(){
+    return DbConnectionError;
+};
 
 module.exports.connectToDB=function(callback){
     var dbConfig=this.getDBConfig();
@@ -13,9 +22,15 @@ module.exports.connectToDB=function(callback){
         "server": dbConfig.host,
         "database": dbConfig.db_name
     }, err =>{
-       callback(err);
-        console.log("connectToDB err=",err);
-    })
+        if(err){
+            callback(err);
+            console.log("connectToDB err database 17=",err);
+            DbConnectionError=err;
+            return;
+        }
+        callback();
+        DbConnectionError=null;
+    });
 };
 
 module.exports.getDBConfig=function(){
