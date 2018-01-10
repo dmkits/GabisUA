@@ -2,7 +2,7 @@ var express = require('express');
 var fs = require('fs');
 var path = require('path');
 var app = express();
-var disk = require('diskusage');
+var df = require('node-df');
 var database = require('./database');
 var cron = require('node-cron');
 var bot=require('./telBot.js');
@@ -31,62 +31,74 @@ function startSendAdminMsgBySchedule(){
     if(!sysadminsMsgConfig) return;
     if(scheduleAdminMsg)scheduleAdminMsg.destroy();
     scheduleAdminMsg =cron.schedule(schedule, function(){
-        var diskSpase= getDiscUsageInfo(sysadminsMsgConfig);
-        var lastBackpupFile = getLastBackupFile(sysadminsMsgConfig);
         var adminMsg='';
-        if(diskSpase && diskSpase.system){
-            adminMsg += "Ресурс: \n System: объем:"+diskSpase.system.total+"Гб, свободно:"+diskSpase.system.free+ "Гб ("+diskSpase.system.freePercent +"%).";
-        }
-        if(diskSpase && diskSpase.backup){
-            adminMsg += "\n Ресурс: \n Backup: объем:"+diskSpase.backup.total+"Гб, свободно:"+diskSpase.backup.free+ "Гб ("+diskSpase.backup.freePercent +"%).";
-        }
-        if(lastBackpupFile && lastBackpupFile.backupDate && lastBackpupFile.fileName){
-            adminMsg+="\n Последняя резервная копия БД "+ lastBackpupFile.fileName+" от " + moment(lastBackpupFile.backupDate).format("DD-MM-YYYY HH:mm:ss");
-        }
-        console.log("adminMsg=",adminMsg);
-        if(adminMsg)   bot.sendMsgToAdmins(adminMsg);
+        getDiscUsageInfo(sysadminsMsgConfig, function(err, diskSpase){
+            if(err){
+                console.log("err=",err);
+            }
+            if(diskSpase && diskSpase.system){
+                adminMsg += "Ресурс: \n System: объем:"+diskSpase.system.total+"Гб, свободно:"+diskSpase.system.free+ "Гб ("+diskSpase.system.freePercent +"%).";
+            }
+            if(diskSpase && diskSpase.backup){
+                adminMsg += "\n Ресурс: \n Backup: объем:"+diskSpase.backup.total+"Гб, свободно:"+diskSpase.backup.free+ "Гб ("+diskSpase.backup.freePercent +"%).";
+            }
+            getLastBackupFile(sysadminsMsgConfig, function(err,lastBackpupFile){
+                if(err){
+                    console.log("err=",err);
+                }
+                if(lastBackpupFile && lastBackpupFile.backupDate && lastBackpupFile.fileName){
+                    adminMsg+="\n Последняя резервная копия БД "+ lastBackpupFile.fileName+" от " + moment(lastBackpupFile.backupDate).format("DD-MM-YYYY HH:mm:ss");
+                }
+                console.log("adminMsg=",adminMsg);
+                if(adminMsg)   bot.sendMsgToAdmins(adminMsg);
+            })
+        });
     });
     scheduleAdminMsg.start();
 }
 startSendAdminMsgBySchedule();
 
-function getDiscUsageInfo(sysadminsMsgConfig) {
+function getDiscUsageInfo(sysadminsMsgConfig, callback) {
     console.log("getDiscUsageInfo");
     var system = sysadminsMsgConfig.system ? sysadminsMsgConfig.system.trim() : "";
     var backup = sysadminsMsgConfig.backup ? sysadminsMsgConfig.backup.trim() : "";
     var diskSpase = {};
-    if (system) {
-        try {
-            let info = disk.checkSync(system);
-            diskSpase.system = {};
-            diskSpase.system.total = parseInt (info.total / 1073741824);
-            diskSpase.system.free = parseInt(info.free / 1073741824);
-            diskSpase.system.freePercent = parseInt(diskSpase.system.free*100/diskSpase.system.total);
-            console.log("diskSpase.system=",diskSpase.system)
-        }
-        catch (err) {
-            console.log(err);
-            return;
-        }
-    }
-    if (backup) {
-        try {
-            let info = disk.checkSync(backup);
-            diskSpase.backup = {};
-            diskSpase.backup.total = parseInt(info.total / 1073741824);
-            diskSpase.backup.free = parseInt(info.free / 1073741824);
-            diskSpase.backup.freePercent =parseInt( diskSpase.backup.freePercent = diskSpase.backup.free*100/diskSpase.backup.total);
-                console.log("diskSpase.backup=",diskSpase.backup);
-        }
-        catch (err) {
-            console.log(err);
-            return;
-        }
+
+    if(system){
+            df({file:system},function(err, response){
+                if(err){
+                    callback(err);
+                    console.log("err 62=",err);
+                }
+                var info=response[0];
+                diskSpase.system = {};
+                diskSpase.system.total = parseInt(info.size/1048576);//parseInt (info.size / 1073741824);
+                diskSpase.system.free = parseInt(info.available/1048576);// parseInt(info.available / 1073741824);
+                diskSpase.system.freePercent = parseInt(diskSpase.system.free*100/diskSpase.system.total);
+                console.log("diskSpase.system=",diskSpase.system);
+                console.log("info system=",info);
+                if(backup){
+                    df({file:backup},function(err,response ){
+                        if(err){
+                            callback(err);
+                            console.log("err 74=",err);
+                        }
+                        var info=response[0];
+                        diskSpase.backup = {};
+                        diskSpase.backup.total = parseInt(info.size/1048576); // parseInt (info.size / 1073741824);
+                        diskSpase.backup.free = parseInt(info.available/1048576); //parseInt(info.available / 1073741824);
+                        diskSpase.backup.freePercent = parseInt(diskSpase.backup.free*100/diskSpase.backup.total);
+                        callback(null,diskSpase);
+                    });
+                    return;
+                }
+                callback(null,diskSpase );
+            });
     }
     return diskSpase;
 }
 
-function getLastBackupFile(sysadminsMsgConfig){
+function getLastBackupFile(sysadminsMsgConfig, callback){
     var backup = sysadminsMsgConfig.backup ? sysadminsMsgConfig.backup.trim() : "";
     if(!backup) return;
     var backupFileName=sysadminsMsgConfig.dbBackupFileName ? sysadminsMsgConfig.dbBackupFileName.trim():"";
@@ -96,7 +108,7 @@ function getLastBackupFile(sysadminsMsgConfig){
        // var files = fs.readdirSync(path.join(__dirname,'./backup'));
         var files = fs.readdirSync(backup);
     }catch(e){
-        console.log("error=",e);
+        callback(e);
     }
     var lastBackpupFile={};
     lastBackpupFile.backupDate=0;
@@ -112,7 +124,7 @@ function getLastBackupFile(sysadminsMsgConfig){
     }
     console.log("lastBackupDate=",lastBackpupFile.backupDate);
     console.log("lastBackupFileName=",lastBackpupFile.fileName);
-    return  lastBackpupFile;
+    callback(null, lastBackpupFile);
 }
 //   '/^Б/' +/т$/
 
@@ -125,5 +137,4 @@ function getServerConfig(){
     }
     return configObj;
 }
-
 app.listen(8182);
