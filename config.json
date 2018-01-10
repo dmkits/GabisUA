@@ -7,7 +7,7 @@
   "sysadmins":["380675612300","380637868770"],
   "sysadminsSchedule":"",
   "sysadminsMsgConfig":{
-    "system":"/","backup":"/home",
+    "system":"/","backup":"/home/ianagez/IdeaProjects/GarbisTelBot/backup/",
     "dbBackupFileName":"GMSData38_*.rar"
   }
 }
