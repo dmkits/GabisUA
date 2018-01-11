@@ -47,15 +47,15 @@ bot.on('message',(msg)=>{
 module.exports.sendMsgToAdmins=function(msg, reconBut=true){                    console.log("sendMsgToAdmins");
     try{
         var admins = JSON.parse(fs.readFileSync(path.join(__dirname, './sysadmins.json')));
-        console.log("admins=",admins);
+
     }catch(e){
         console.log("error=",e);
         return;
     }
-    for(var j in admins){           console.log("inside for");
-        var admin=admins[j];       console.log("admin=",admin);
+    for(var j in admins){
+        var admin=admins[j];
         for(var h in admin){
-        var adminChatId=admin[h];   console.log("adminChatId=",adminChatId);
+        var adminChatId=admin[h];
             if(adminChatId){
                 if(reconBut){
                     bot.sendMessage(adminChatId, msg,
@@ -97,7 +97,7 @@ function checkAndRegisterSysAdmin(msg){
         }
 
     try {
-        var configObj = JSON.parse(fs.readFileSync(path.join(__dirname, './config.json'))); console.log("configObj=",configObj);
+        var configObj = JSON.parse(fs.readFileSync(path.join(__dirname, './config.json')));
     }catch(e){
         return;
     }

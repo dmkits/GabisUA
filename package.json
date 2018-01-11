@@ -6,6 +6,7 @@
   "dependencies": {
     "bluebird": "^3.5.1",
     "check-disk-space": "^1.4.0",
+    "diskusage-ng": "^0.2.3",
     "express": "^4.16.2",
     "fd-diskspace": "^1.0.0",
     "fs": "0.0.1-security",
