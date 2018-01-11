@@ -102,7 +102,6 @@ function getDiscUsageInfo(sysadminsMsgConfig, callback) {                       
         });
     }
 }
-//getLastBackupFile();
 
 function getLastBackupFile(sysadminsMsgConfig, callback){                                                            console.log("getLastBackupFile");
     var backup = sysadminsMsgConfig.backup ? sysadminsMsgConfig.backup.trim() : "";
@@ -115,9 +114,7 @@ function getLastBackupFile(sysadminsMsgConfig, callback){                       
         callback("Не удалось найти шаблон имени файла резервных коний БД.");
         return;
     }
-
-
-    var backupFileNameTemplate=new RegExp("^"+backupFileName.substring(0,backupFileName.indexOf("*"))/* +" /\\w{0, }\\"+backupFileName.substring(backupFileName.indexOf("*")+1)+"$"*/);
+    var backupFileNameTemplate=new RegExp("^"+backupFileName.substring(0,backupFileName.indexOf("*"))+".*\\"+backupFileName.substring(backupFileName.indexOf("*")+1)+"$");
     try{
         var files = fs.readdirSync(backup);
     }catch(e){
@@ -133,16 +130,11 @@ function getLastBackupFile(sysadminsMsgConfig, callback){                       
             if(stat.mtime>lastBackpupFile.backupDate){
                 lastBackpupFile.backupDate=stat.mtime;
                 lastBackpupFile.fileName=files[i];
-                console.log("stat=",stat);
-                console.log("isFile=",stat.isFile());
              }
         }
     }
-    console.log("lastBackupDate=",lastBackpupFile.backupDate);
-    console.log("lastBackupFileName=",lastBackpupFile.fileName);
     callback(null, lastBackpupFile);
 }
-//   '/^Б/' +/т$/
 
 function getServerConfig(){                                                                                             console.log("dgetServerConfig");
     try {
