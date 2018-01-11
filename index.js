@@ -102,6 +102,7 @@ function getDiscUsageInfo(sysadminsMsgConfig, callback) {                       
         });
     }
 }
+//getLastBackupFile();
 
 function getLastBackupFile(sysadminsMsgConfig, callback){                                                            console.log("getLastBackupFile");
     var backup = sysadminsMsgConfig.backup ? sysadminsMsgConfig.backup.trim() : "";
@@ -114,6 +115,8 @@ function getLastBackupFile(sysadminsMsgConfig, callback){                       
         callback("Не удалось найти шаблон имени файла резервных коний БД.");
         return;
     }
+
+
     var backupFileNameTemplate=new RegExp("^"+backupFileName.substring(0,backupFileName.indexOf("*"))/* +" /\\w{0, }\\"+backupFileName.substring(backupFileName.indexOf("*")+1)+"$"*/);
     try{
         var files = fs.readdirSync(backup);
@@ -125,11 +128,13 @@ function getLastBackupFile(sysadminsMsgConfig, callback){                       
     lastBackpupFile.backupDate=0;
     lastBackpupFile.fileName="";
     for (var i in files){
-        var stat = fs.lstatSync(__dirname,'./backup/'+files[i]);
+        var stat = fs.statSync(path.join(backup+files[i]));
         if(files[i].match(backupFileNameTemplate)){
-            if(stat.birthtime>lastBackpupFile.backupDate){
-                lastBackpupFile.backupDate=stat.birthtime;
+            if(stat.mtime>lastBackpupFile.backupDate){
+                lastBackpupFile.backupDate=stat.mtime;
                 lastBackpupFile.fileName=files[i];
+                console.log("stat=",stat);
+                console.log("isFile=",stat.isFile());
              }
         }
     }
