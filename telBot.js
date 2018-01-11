@@ -7,8 +7,6 @@ var database=require('./database');
 
 var bot = new TelegramBot(TOKEN, {polling: true});
 
-
-
 var KB={
     registration:'Зарегистироваться',
     dbConnection:'Подключиться к БД'
@@ -29,7 +27,6 @@ bot.on('polling_error', (error) => {
     console.log("polling_error=",error);
 });
 
-
 bot.on('message',(msg)=>{
     if(msg.text==KB.dbConnection){
         database.connectToDB(function(err){
@@ -40,9 +37,28 @@ bot.on('message',(msg)=>{
              module.exports.sendMsgToAdmins("Подключение к БД установлено успешно!", false);
         })
     }
-    if(msg.contact && msg.contact.phone_number) checkAndRegisterSysAdmin(msg);
+    if(msg.contact && msg.contact.phone_number){
+        var dbConnectionError=database.getDbConnectionError();
+        if(dbConnectionError){
+            checkAndRegisterSysAdmin(msg, true);
+            return;
+        }
+        database.checkPhoneAndWriteChatID(msg.contact.phone_number,msg.chat.id,
+            function(err,status){
+                if(err){
+                    if(err.clientMsg){
+                        bot.sendMessage(msg.chat.id, err.clientMsg);
+                        checkAndRegisterSysAdmin(msg);
+                        return;
+                    }
+                    checkAndRegisterSysAdmin(msg, true);
+                    return;
+                }
+                bot.sendMessage(msg.chat.id, "Регистрация "+status+" прошла успешно!");
+                checkAndRegisterSysAdmin(msg);
+            })
+    }
 });
-
 
 module.exports.sendMsgToAdmins=function(msg, reconBut=true){                    console.log("sendMsgToAdmins");
     try{
@@ -78,7 +94,7 @@ module.exports.sendMsgToAdmins=function(msg, reconBut=true){                    
     }
 };
 
-function checkAndRegisterSysAdmin(msg){
+function checkAndRegisterSysAdmin(msg, dbError=false){
     var phoneNumber=msg.contact.phone_number;
     var registeredSysAdmins;
     try{
@@ -91,11 +107,10 @@ function checkAndRegisterSysAdmin(msg){
     for(var k in registeredSysAdmins){
         var registeredSysAdmin=registeredSysAdmins[k];
             if(registeredSysAdmin[phoneNumber]){
-                bot.sendMessage(msg.chat.id, "Данный номер телефона уже зарегистрирован!");
+                bot.sendMessage(msg.chat.id, "Данный номер телефона уже зарегистрирован в списке системных администраторов!");
                     return;
             }
-        }
-
+    }
     try {
         var configObj = JSON.parse(fs.readFileSync(path.join(__dirname, './config.json')));
     }catch(e){
@@ -114,15 +129,20 @@ function checkAndRegisterSysAdmin(msg){
              fs.writeFile(path.join(__dirname, "./sysadmins.json"),JSON.stringify(registeredSysAdmins), {flag:'w+'},
                  function(err){
                      if (err) {
-                         bot.sendMessage(msg.chat.id, "Ошибка регистрации! "+err);
+                         bot.sendMessage(msg.chat.id, "Ошибка регистрации системного администратора! "+err);
                          return;
                      }
-                     bot.sendMessage(msg.chat.id, "Регистрация прошла успешно!");
+                     bot.sendMessage(msg.chat.id, "Регистрация системного администратора прошла успешно!");
                  });
             return;
         }
         if(i==sysAdminTelArr.length-1){
-            bot.sendMessage(msg.chat.id, "Невозможно зарегистрировать!\nПричина: данный номер телефона не найден в списке телефонов администраторов!");
+            if(dbError) bot.sendMessage(msg.chat.id, "Не удалось зарегистрировать!\nПричина: данный номер телефона не найден в списке телефонов системных администраторов. " +
+                "Другие списки пользователей на данный момент недоступны.");
         }
     }
 }
+
+module.exports.sendMsgToChatId=function(chatId, msg){
+    bot.sendMessage(chatId,msg)
+};
