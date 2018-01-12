@@ -2,10 +2,13 @@ var Promise = require('bluebird');
 var TelegramBot = require('node-telegram-bot-api');
 var fs=require('fs');
 var path = require('path');
-var TOKEN='491349310:AAG0qRPlpmJucU0hRZXzzwhlgo5yjt-zOjQ';
+//var TOKEN='491349310:AAG0qRPlpmJucU0hRZXzzwhlgo5yjt-zOjQ';
+var TOKEN='464525746:AAFVhlT6jp5cgaS02vtCUHpD0-z6_5wb8j4';
 var database=require('./database');
 
 var bot = new TelegramBot(TOKEN, {polling: true});
+
+var msgManager=require('./msgManager');
 
 var KB={
     registration:'Зарегистироваться',
@@ -31,7 +34,7 @@ bot.on('message',(msg)=>{
     if(msg.text==KB.dbConnection){
         database.connectToDB(function(err){
             if (err){
-                module.exports.sendMsgToAdmins("Невозможно подключиться к БД! Причина:"+err);
+                module.exports.sendMsgToAdmins("Не удалось подключиться к БД! Причина:"+err);
                 return;
             }
              module.exports.sendMsgToAdmins("Подключение к БД установлено успешно!", false);
@@ -54,13 +57,23 @@ bot.on('message',(msg)=>{
                     checkAndRegisterSysAdmin(msg, true);
                     return;
                 }
-                bot.sendMessage(msg.chat.id, "Регистрация "+status+" прошла успешно!");
-                checkAndRegisterSysAdmin(msg);
+                bot.sendMessage(msg.chat.id, "Регистрация служащего для рассылки прошла успешно. Статус служащего: "+status+".");
+                    msgManager.makeUnconfirmedDocsMsg(function(adminMsg){
+                        if(!adminMsg){
+                            console.log("FAIL! makeUnconfirmedDocsMsg!");
+                            return;
+                        }
+                        setTimeout(function(){
+                            bot.sendMessage(msg.chat.id, adminMsg, {parse_mode:"HTML"});
+                            checkAndRegisterSysAdmin(msg);
+                        },0);
+                    });
+
             })
     }
 });
 
-module.exports.sendMsgToAdmins=function(msg, reconBut=true){                    console.log("sendMsgToAdmins");
+module.exports.sendMsgToAdmins=function(msg, reconBut=true){   console.log("telBot sendMsgToAdmins");
     try{
         var admins = JSON.parse(fs.readFileSync(path.join(__dirname, './sysadmins.json')));
 
@@ -82,13 +95,13 @@ module.exports.sendMsgToAdmins=function(msg, reconBut=true){                    
                             one_time_keyboard: true
                         }
                         });
-                    return;
+                    continue;
                 }
                 bot.sendMessage(adminChatId, msg,
                     {reply_markup: {
                         remove_keyboard: true
                     }
-                    });
+                });
             }
         }
     }
@@ -107,16 +120,22 @@ function checkAndRegisterSysAdmin(msg, dbError=false){
     for(var k in registeredSysAdmins){
         var registeredSysAdmin=registeredSysAdmins[k];
             if(registeredSysAdmin[phoneNumber]){
-                bot.sendMessage(msg.chat.id, "Данный номер телефона уже зарегистрирован в списке системных администраторов!");
-                    return;
+                bot.sendMessage(msg.chat.id, "Номер телефона пользователя Telegram уже зарегистрирован в справочнике системных администраторов.");
+                    msgManager.makeDiskUsageMsg(null, function(adminMsg){
+                        if(!adminMsg){
+                          console.log("FAIL! Get makeDiskUsageMsg");
+                            return;
+                        }
+                        setTimeout(function(){
+                            bot.sendMessage(msg.chat.id, adminMsg);
+                        },0);
+                    });
+
+                return;
             }
     }
-    try {
-        var configObj = JSON.parse(fs.readFileSync(path.join(__dirname, './config.json')));
-    }catch(e){
-        return;
-    }
-    if(!configObj || !configObj["sysadmins"]) {                                              console.log("No sysadmin phone numbers");
+    var configObj=database.getAppConfig();
+    if(!configObj || !configObj["sysadmins"]) {
         return;
     }
     var sysAdminTelArr=configObj["sysadmins"];
@@ -129,20 +148,30 @@ function checkAndRegisterSysAdmin(msg, dbError=false){
              fs.writeFile(path.join(__dirname, "./sysadmins.json"),JSON.stringify(registeredSysAdmins), {flag:'w+'},
                  function(err){
                      if (err) {
-                         bot.sendMessage(msg.chat.id, "Ошибка регистрации системного администратора! "+err);
+                         bot.sendMessage(msg.chat.id, "Ошибка регистрации системного администратора. "+err);
                          return;
                      }
-                     bot.sendMessage(msg.chat.id, "Регистрация системного администратора прошла успешно!");
+
+                     bot.sendMessage(msg.chat.id, "Регистрация системного администратора прошла успешно.");
+                          msgManager.makeDiskUsageMsg(null, function(adminMsg){
+                              if(!adminMsg){
+                                  console.log("FAIL! makeDiskUsageMsg");
+                                  return;
+                              }
+                              setTimeout(function(){
+                                  bot.sendMessage(msg.chat.id, adminMsg);
+                              },0);
+                     });
                  });
             return;
         }
         if(i==sysAdminTelArr.length-1){
-            if(dbError) bot.sendMessage(msg.chat.id, "Не удалось зарегистрировать!\nПричина: данный номер телефона не найден в списке телефонов системных администраторов. " +
-                "Другие списки пользователей на данный момент недоступны.");
+            if(dbError) bot.sendMessage(msg.chat.id, "Не удалось зарегистрировать!\nПричина: номер телефона пользователя Telegram не найден в справочнике телефонов системных администраторов. " +
+                "Другие справочники пользователей на данный момент недоступны.");
         }
     }
 }
 
-module.exports.sendMsgToChatId=function(chatId, msg){
-    bot.sendMessage(chatId,msg)
+module.exports.sendMsgToChatId=function(chatId, msg, params={}){  console.log("telBot sendMsgToChatId");
+    bot.sendMessage(chatId,msg, params);
 };

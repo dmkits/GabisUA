@@ -1,11 +1,13 @@
 {
   "host":"192.168.56.11",
   "port":"1433",
-  "db_name":"GMSData38BTK_KLNK",
+  "database":"GMSSample38btkKlnk",
   "user":"sa",
   "password":"GMSgms123",
   "sysadmins":["380675612300","380637868770"],
-  "sysadminsSchedule":"",
+  "sysadminsSchedule":"0 */1 * * * *",
+  "adminSchedule":"0 */1 * * * *",
+  "userSchedule":"",
   "sysadminsMsgConfig":{
     "system":"C:","backup":"C:/GMSServer/BackUp/",
     "dbBackupFileName":"GMSData38_*.rar"

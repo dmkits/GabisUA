@@ -1,26 +1,25 @@
-var Promise = require('bluebird');
+//var Promise = require('bluebird');
 var mssql=require('mssql');
 var fs= require('fs');
 var path=require('path');
 var DbConnectionError=null;
+var appConfig=null;
 
-Promise.config({
-    cancellation: true
-});
+//Promise.config({
+//    cancellation: true
+//});
 
-
-module.exports.getDbConnectionError= function(){
+module.exports.getDbConnectionError= function(){ console.log(" database getDbConnectionError");
     return DbConnectionError;
 };
-
-module.exports.connectToDB=function(callback){
-    var dbConfig=this.getDBConfig();
+module.exports.connectToDB=function(callback){                                                      console.log(" database connectToDB");
+    var appConfig=this.getAppConfig();
     mssql.close();
     mssql.connect({
-        "user": dbConfig.user,
-        "password": dbConfig.password,
-        "server": dbConfig.host,
-        "database": dbConfig.db_name
+        "user": appConfig.user,
+        "password": appConfig.password,
+        "server": appConfig.host,
+        "database": appConfig.database
     }, err =>{
         if(err){
             callback(err);
@@ -32,42 +31,42 @@ module.exports.connectToDB=function(callback){
         DbConnectionError=null;
     });
 };
-
-module.exports.getDBConfig=function(){
-    var dbConfig;
+module.exports.setAppConfig=function(configFileName){                                               console.log(" database setAppConfig");
     try{
-    dbConfig=JSON.parse(fs.readFileSync(path.join(__dirname,'./config.json')))
+        appConfig=JSON.parse(fs.readFileSync(path.join(__dirname, configFileName+'.json')))
     }catch(e){
-         console.log("dbConfig parse ERROR=",e);
+        console.log("appConfig parse ERROR=",e);
     }
-   return dbConfig;
+};
+module.exports.getAppConfig=function(){          console.log(" database getAppConfig");
+   return appConfig;
 };
 
-module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){
+module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){ console.log(" database checkPhoneAndWriteChatID");
     var request = new mssql.Request();
     request.input('Mobile', phoneNum);
     request.query('select EmpID from r_Emps WHERE Mobile=@Mobile',
-        function(err,res){                                  console.log("res 51=",res);
-            if(err){                                       console.log("err 51=",err);
+        function(err,res){
+            if(err){
                 callback(err);
                 return;
             }
             if(!res.recordset[0] || !res.recordset[0].EmpID){
-                callback({clientMsg:"Не удалось зарегистрировать. Данный номер телефона не найден в базе."});
+                callback({clientMsg:"Не удалось зарегистрировать служащего для служебной рассылки. Номер телефона пользователя Telegram не найден в справочнике служащих."});
                 return;
             }
-            var empID=res.recordset[0].EmpID;                    console.log("empID=",empID);
+            var empID=res.recordset[0].EmpID;
             request.input('TChatID', chatId);
             request.input('EmpID', empID);
-            request.query('update r_Emps set TChatID=@TChatID where EmpID=@EmpID ',               //select ShiftPostID where EmpID=@EmpID
-            function(err, res){                           console.log("res 60=",res);
-                if(err){                                  console.log("err 60=",err);
+            request.query('update r_Emps set TChatID=@TChatID where EmpID=@EmpID ',
+            function(err, res){
+                if(err){
                     callback(err);
                     return;
                 }
                 request.query('select ShiftPostID from r_Emps where EmpID=@EmpID',
-                    function(err,res){                                                        console.log("res 66=",res);
-                        if(err){                                                               console.log("err 66=",err);
+                    function(err,res){
+                        if(err){
                             callback(err);
                             return;
                         }
@@ -75,31 +74,31 @@ module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){
                             callback({clientMsg:"Регистрация не завершена. \n Причина: не удалось определить статус пользователя."});
                             return;
                         }
-                        var status = res.recordset[0].ShiftPostID==0?"кассира":"администратора";     console.log("status=",status);
+                        var status = res.recordset[0].ShiftPostID==0?"кассир":"администратор";
                          callback(null,status);
                     });
             });
     })
 };
 
-module.exports.getAdminChatIds=function(callback){
+module.exports.getAdminChatIds=function(callback){ console.log(" database getAdminChatIds");
     var request = new mssql.Request();
     request.query("select TChatID from r_Emps where ShiftPostID=1 and LTRIM(ISNULL(Mobile,''))<>'' and LTRIM(ISNULL(TChatID,''))<>''",
-        function(err,res){                                                          console.log("res 88=",res);
-            if(err){                                                               console.log("err 88=",err);
+        function(err,res){ console.log("res getAdminChatIds=",res);
+            if(err){
                 callback(err);
                 return;
             }
             if(!res.recordset[0] || res.recordset[0].TChatID===undefined){
                 //callback({clientMsg:"Регистрация не завершена. \n Причина: не удалось определить статус пользователя."});
-                callback({err:"Не удалось найти ни одного номера телефона администратора в БД"});
+                callback({err:"Не удалось найти ни одного номера телефона в справочнике администраторов."});
                 return;
             }
             callback(null,res.recordset);
         });
 };
 
-module.exports.getTRecData=function(callback){
+module.exports.getTRecData=function(callback){  console.log(" database getTRecData");
     var request = new mssql.Request();
     request.query("select m.StockID, st.StockName, Count(1) as Total " +
         "from t_Rec m " +
@@ -107,8 +106,8 @@ module.exports.getTRecData=function(callback){
         " where m.StateCode=50" +
         " group by m.StockID, st.StockName " +
         "order by m.StockID",
-        function(err,res){                                                                                      console.log("res 111=",res);
-            if(err){                                                                                            console.log("err 112=",err);
+        function(err,res){
+            if(err){
                 callback(err);
                 return;
             }
@@ -116,7 +115,7 @@ module.exports.getTRecData=function(callback){
         });
 };
 
-module.exports.getTExcData=function(callback){
+module.exports.getTExcData=function(callback){   console.log(" database getTExcData");
     var request = new mssql.Request();
     request.query("select m.NewStockID, st.StockName, Count(1) as Total " +
         "from t_Exc m " +
@@ -124,8 +123,8 @@ module.exports.getTExcData=function(callback){
         "where m.StateCode=56 " +
         "group by m.NewStockID, st.StockName " +
         "order by m.NewStockID",
-        function(err,res){                                                                                      console.log("res 127=",res);
-            if(err){                                                                                            console.log("err 112=",err);
+        function(err,res){
+            if(err){
                 callback(err);
                 return;
             }

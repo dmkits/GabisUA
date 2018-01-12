@@ -1,12 +1,12 @@
 {
   "host":"192.168.56.11",
   "port":"1433",
-  "db_name":"GMSSample38btkKlnk",
+  "database":"GMSSample38btkKlnk",
   "user":"sa",
   "password":"GMSgms123",
   "sysadmins":["380675612300","380637868770"],
-  "sysadminSchedule":"",
-  "adminSchedule":"",
+  "sysadminsSchedule":"0 */1 * * * *",
+  "adminSchedule":"0 */1 * * * *",
   "userSchedule":"",
   "sysadminsMsgConfig":{
     "system":"/","backup":"/home/ianagez/IdeaProjects/GarbisTelBot/backup/",
