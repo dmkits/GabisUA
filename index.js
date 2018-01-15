@@ -68,7 +68,7 @@ function startSendAdminMsgBySchedule(){                                         
                     }
                     var adminChatArr=res;
                     for(var j in adminChatArr){
-                        logger.info("Unconfirmed docs msg is sending to admin. Chat ID: "+adminChatArr[j].TChatID);
+                        logger.info("Unconfirmed docs msg is sending to admin by schedule. Chat ID: "+adminChatArr[j].TChatID);
                         bot.sendMsgToChatId(adminChatArr[j].TChatID, adminMsg, {parse_mode:"HTML"});
                     }
                 });
@@ -76,6 +76,6 @@ function startSendAdminMsgBySchedule(){                                         
     });
     scheduleAdminMsg.start();
 }
-startSendAdminMsgBySchedule();
-startSendSysAdminMsgBySchedule();
+//startSendAdminMsgBySchedule();
+//startSendSysAdminMsgBySchedule();
 app.listen(8182);

@@ -26,6 +26,10 @@ bot.onText(/\/start/, function(msg, resp) {
     });
 });
 
+bot.on('error', (error) => {
+   console.log("EVENT error=",error);
+});
+
 bot.on('polling_error', (error) => {
   logger.error(error);
 });
@@ -99,7 +103,7 @@ module.exports.sendMsgToAdmins=function(msg, reconBut=true){
                         }});
                     continue;
                 }
-                logger.info("Sending msg to sysadmin. Chat ID: "+ adminChatId+ "Msg: "+msg);
+                logger.info("Sending msg to sysadmin by schedule. Chat ID: "+ adminChatId+ "Msg: "+msg);
                 bot.sendMessage(adminChatId, msg,{parse_mode:"HTML"}
                     ,{reply_markup: {
                         remove_keyboard: true
@@ -130,7 +134,7 @@ function checkAndRegisterSysAdmin(msg, dbError=false){
                             return;
                         }
                         setTimeout(function(){
-                            logger.info("Disk usage msg is sending. Phone number: "+phoneNumber);
+                            logger.info("Disk usage msg is sending for existed sysadmin. Phone number: "+phoneNumber);
                             bot.sendMessage(msg.chat.id, adminMsg, {parse_mode:"HTML"});
                         },0);
                     });
@@ -163,7 +167,7 @@ function checkAndRegisterSysAdmin(msg, dbError=false){
                                   return;
                               }
                               setTimeout(function(){
-                                  logger.info("Disk usage msg is sending.  Phone number: "+phoneNumber);
+                                  logger.info("Disk usage msg is sending for new sysadmin.  Phone number: "+phoneNumber);
                                   bot.sendMessage(msg.chat.id, adminMsg, {parse_mode:"HTML"});
                               },0);
                      });
@@ -181,3 +185,10 @@ function checkAndRegisterSysAdmin(msg, dbError=false){
 module.exports.sendMsgToChatId=function(chatId, msg, params={}){
     bot.sendMessage(chatId,msg, params);
 };
+
+bot.sendMessage('020000', "layno").catch((error)=>{
+    console.log("error 14=",error);
+    console.log("error.code=",error.code);  // => 'ETELEGRAM'
+    console.log("error.response.body=",error.response.body);
+   // return;
+});

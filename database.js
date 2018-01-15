@@ -1,4 +1,4 @@
-//var Promise = require('bluebird');
+var Promise = require('bluebird');
 var mssql=require('mssql');
 var fs= require('fs');
 var path=require('path');
@@ -6,9 +6,9 @@ var DbConnectionError=null;
 var appConfig=null;
 var logger=require('./logger')();
 
-//Promise.config({
-//    cancellation: true
-//});
+Promise.config({
+    cancellation: true
+});
 
 module.exports.getDbConnectionError= function(){
     return DbConnectionError;
