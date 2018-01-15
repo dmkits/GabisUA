@@ -6,6 +6,7 @@
   "dependencies": {
     "bluebird": "^3.5.1",
     "check-disk-space": "^1.4.0",
+    "dateformat": "^3.0.2",
     "diskusage-ng": "^0.2.3",
     "express": "^4.16.2",
     "fd-diskspace": "^1.0.0",
@@ -15,7 +16,9 @@
     "node-cron": "^1.2.1",
     "node-df": "^0.1.1",
     "node-telegram-bot-api": "^0.30.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "winston": "^2.4.0",
+    "winston-daily-rotate-file": "^1.7.2"
   },
   "devDependencies": {},
   "scripts": {

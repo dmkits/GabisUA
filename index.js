@@ -7,7 +7,7 @@ var cron = require('node-cron');
 var bot=require('./telBot.js');
 var moment = require('moment');
 var msgManager=require('./msgManager.js');
-
+var logger=require('./logger')();
 
 var configFileNameParam=process.argv[2];
 
@@ -20,12 +20,12 @@ database.connectToDB(function(err){
 });
 
 var scheduleSysAdminMsg;
-function startSendSysAdminMsgBySchedule(){  console.log("index startSendSysAdminMsgBySchedule");
-    var serverConfig=database.getAppConfig();                                       console.log("serverConfig=",serverConfig);
-    var sysAdminSchedule=serverConfig.sysadminsSchedule;   console.log("sysAdminSchedule=",sysAdminSchedule);
+function startSendSysAdminMsgBySchedule(){                                                          logger.info("startSendSysAdminMsgBySchedule");
+    var serverConfig=database.getAppConfig();
+    var sysAdminSchedule=serverConfig.sysadminsSchedule;                                            logger.info("sysAdminSchedule=",sysAdminSchedule);
     if(!sysAdminSchedule) sysAdminSchedule='*/15 * * * * *';
     var valid = cron.validate(sysAdminSchedule);
-    if(valid==false){                                                                           console.log("invalide cron format");
+    if(valid==false){                                                                               logger.error("invalide sysAdminSchedule cron format "+ sysAdminSchedule);
         return;
     }
     var sysadminsMsgConfig = serverConfig.sysadminsMsgConfig;
@@ -33,42 +33,42 @@ function startSendSysAdminMsgBySchedule(){  console.log("index startSendSysAdmin
     if(scheduleSysAdminMsg)scheduleSysAdminMsg.destroy();
     scheduleSysAdminMsg =cron.schedule(sysAdminSchedule,
         function(){
-            msgManager.makeDiskUsageMsg(sysadminsMsgConfig, function(adminMsg){
-                if(!adminMsg){
-                    console.log("FAIL! makeDiskUsageMsg");
+            msgManager.makeDiskUsageMsg(sysadminsMsgConfig, function(err, adminMsg){
+                if(err){
+                    logger.error(err);
                     return;
                 }
                 bot.sendMsgToAdmins(adminMsg, false);
             });
-
     });
     scheduleSysAdminMsg.start();
 }
 
 var scheduleAdminMsg;
-function startSendAdminMsgBySchedule(){     console.log("index startSendAdminMsgBySchedule");
+function startSendAdminMsgBySchedule(){                                                                 logger.info("startSendAdminMsgBySchedule");
     var serverConfig=database.getAppConfig();
-    var adminSchedule=serverConfig.adminSchedule;                            console.log("adminSchedule=",adminSchedule);
+    var adminSchedule=serverConfig.adminSchedule;                                                       logger.info("adminSchedule=",adminSchedule);
     if(!adminSchedule) adminSchedule='*/15 * * * * *';
     var valid = cron.validate(adminSchedule);
-    if(valid==false){                                                                           console.log("invalide cron format");
+    if(valid==false){                                                                                   logger.error("invalide adminSchedule cron format "+adminSchedule);
         return;
     }
     if(scheduleAdminMsg)scheduleAdminMsg.destroy();
      scheduleAdminMsg =cron.schedule(adminSchedule,
          function(){
-            msgManager.makeUnconfirmedDocsMsg(function(adminMsg){
-                if(!adminMsg) {
-                    console.log("FAIL!makeUnconfirmedDocsMsg");
+            msgManager.makeUnconfirmedDocsMsg(function(err,adminMsg){
+                if(err) {
+                    logger.error(err);
                     return;
                 }
                 database.getAdminChatIds(function(err, res){
                     if(err){
-                        console.log("err=",err);
+                        logger.error(err);
                         return;
                     }
                     var adminChatArr=res;
                     for(var j in adminChatArr){
+                        logger.info("Unconfirmed docs msg is sending to admin. Chat ID: "+adminChatArr[j].TChatID);
                         bot.sendMsgToChatId(adminChatArr[j].TChatID, adminMsg, {parse_mode:"HTML"});
                     }
                 });

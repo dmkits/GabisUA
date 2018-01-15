@@ -3,16 +3,14 @@ var diskusage = require('diskusage-ng');
 var fs = require('fs');
 var path = require('path');
 var moment = require('moment');
-//var bot = require('./telBot.js');
 
-
-module.exports.makeDiskUsageMsg=function(sysadminsMsgConfig, callback){  console.log("msgManager makeDiskUsageMsg");
-    var adminMsg='';
+module.exports.makeDiskUsageMsg=function(sysadminsMsgConfig, callback){
+    var adminMsg='<b>Информация системному администратору на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> \n';
     if(!sysadminsMsgConfig){
         var serverConfig=database.getAppConfig();
         var sysadminsMsgConfig = serverConfig.sysadminsMsgConfig;
         if(!sysadminsMsgConfig){
-            callback ();
+            callback ("FAIL! Reason: 'sysadminsMsgConfig' wasn't found in config params.");
             return;
         }
     }
@@ -33,17 +31,16 @@ module.exports.makeDiskUsageMsg=function(sysadminsMsgConfig, callback){  console
             if(lastBackpupFile && lastBackpupFile.backupDate && lastBackpupFile.fileName){
                 adminMsg+="\n Последняя резервная копия БД "+ lastBackpupFile.fileName+" от " + moment(lastBackpupFile.backupDate).format("DD-MM-YYYY HH:mm:ss");
             }
-            callback(adminMsg);
+            callback(null,adminMsg);
         })
     });
 };
 
-module.exports.makeUnconfirmedDocsMsg =function(callback){ console.log("msgManager makeUnconfirmedDocsMsg");
-    var adminMsg='';
+module.exports.makeUnconfirmedDocsMsg =function(callback){
+    var adminMsg='<b>Информация администратору на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> \n';
     database.getTRecData(function(err, res){
         if(err){
-            console.log("err=",err);
-            callback();
+            callback(err);
             return;
         }
         var tRecArr=res;
@@ -54,8 +51,7 @@ module.exports.makeUnconfirmedDocsMsg =function(callback){ console.log("msgManag
         }
         database.getTExcData(function(err, res){
             if(err){
-                console.log("err=",err);
-                callback();
+                callback(err);
                 return;
             }
             adminMsg+="\n<b>Неподтвержденные накладные перемещения:</b>";
@@ -64,7 +60,7 @@ module.exports.makeUnconfirmedDocsMsg =function(callback){ console.log("msgManag
                 var dataItem=tExpArr[k];
                 adminMsg+="\n &#12539 "+dataItem.StockName+": "+dataItem.Total;
             }
-            callback(adminMsg);
+            callback(null,adminMsg);
         })
     });
 };

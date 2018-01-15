@@ -4,15 +4,17 @@ var fs= require('fs');
 var path=require('path');
 var DbConnectionError=null;
 var appConfig=null;
+var logger=require('./logger')();
 
 //Promise.config({
 //    cancellation: true
 //});
 
-module.exports.getDbConnectionError= function(){ console.log(" database getDbConnectionError");
+module.exports.getDbConnectionError= function(){
     return DbConnectionError;
 };
-module.exports.connectToDB=function(callback){                                                      console.log(" database connectToDB");
+
+module.exports.connectToDB=function(callback){
     var appConfig=this.getAppConfig();
     mssql.close();
     mssql.connect({
@@ -23,26 +25,27 @@ module.exports.connectToDB=function(callback){                                  
     }, err =>{
         if(err){
             callback(err);
-            console.log("connectToDB err database 17=",err);
             DbConnectionError=err;
+            logger.error(err);
             return;
         }
         callback();
         DbConnectionError=null;
     });
 };
-module.exports.setAppConfig=function(configFileName){                                               console.log(" database setAppConfig");
+
+module.exports.setAppConfig=function(configFileName){
     try{
         appConfig=JSON.parse(fs.readFileSync(path.join(__dirname, configFileName+'.json')))
     }catch(e){
-        console.log("appConfig parse ERROR=",e);
+        logger.error(e);
     }
 };
-module.exports.getAppConfig=function(){          console.log(" database getAppConfig");
+module.exports.getAppConfig=function(){
    return appConfig;
 };
 
-module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){ console.log(" database checkPhoneAndWriteChatID");
+module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){
     var request = new mssql.Request();
     request.input('Mobile', phoneNum);
     request.query('select EmpID from r_Emps WHERE Mobile=@Mobile',
@@ -81,10 +84,10 @@ module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){ co
     })
 };
 
-module.exports.getAdminChatIds=function(callback){ console.log(" database getAdminChatIds");
+module.exports.getAdminChatIds=function(callback){
     var request = new mssql.Request();
     request.query("select TChatID from r_Emps where ShiftPostID=1 and LTRIM(ISNULL(Mobile,''))<>'' and LTRIM(ISNULL(TChatID,''))<>''",
-        function(err,res){ console.log("res getAdminChatIds=",res);
+        function(err,res){
             if(err){
                 callback(err);
                 return;
@@ -98,7 +101,7 @@ module.exports.getAdminChatIds=function(callback){ console.log(" database getAdm
         });
 };
 
-module.exports.getTRecData=function(callback){  console.log(" database getTRecData");
+module.exports.getTRecData=function(callback){
     var request = new mssql.Request();
     request.query("select m.StockID, st.StockName, Count(1) as Total " +
         "from t_Rec m " +
@@ -115,7 +118,7 @@ module.exports.getTRecData=function(callback){  console.log(" database getTRecDa
         });
 };
 
-module.exports.getTExcData=function(callback){   console.log(" database getTExcData");
+module.exports.getTExcData=function(callback){
     var request = new mssql.Request();
     request.query("select m.NewStockID, st.StockName, Count(1) as Total " +
         "from t_Exc m " +
