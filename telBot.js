@@ -2,8 +2,8 @@ var Promise = require('bluebird');
 var TelegramBot = require('node-telegram-bot-api');
 var fs=require('fs');
 var path = require('path');
-//var TOKEN='491349310:AAG0qRPlpmJucU0hRZXzzwhlgo5yjt-zOjQ';
-var TOKEN='464525746:AAFVhlT6jp5cgaS02vtCUHpD0-z6_5wb8j4';
+//var TOKEN='491349310:AAG0qRPlpmJucU0hRZXzzwhlgo5yjt-zOjQ'; //Garbis
+var TOKEN='464525746:AAFVhlT6jp5cgaS02vtCUHpD0-z6_5wb8j4';   //GarbisDev
 var database=require('./database');
 var logger=require('./logger')();
 var bot = new TelegramBot(TOKEN, {polling: true});
@@ -53,7 +53,7 @@ bot.on('message',(msg)=>{
             return;
         }
         database.checkPhoneAndWriteChatID(msg.contact.phone_number,msg.chat.id,
-            function(err,status){
+            function(err,status, empID){
                 if(err){
                     if(err.clientMsg){
                         logger.error(err.clientMsg);
@@ -71,6 +71,7 @@ bot.on('message',(msg)=>{
                 bot.sendMessage(msg.chat.id, "Регистрация служащего для рассылки прошла успешно. Статус служащего: "+status+".").catch((error)=>{
                     logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);
                 });
+                if(status=='администратор'){
                     msgManager.makeUnconfirmedDocsMsg(function(err, adminMsg){
                         if(err){
                             logger.error("FAILED to make unconfirmed docs msg"+err);
@@ -84,6 +85,11 @@ bot.on('message',(msg)=>{
                             checkAndRegisterSysAdmin(msg);
                         },0);
                     });
+                }else if(status=='кассир'){
+                    database.getCashierMsgDataByEmpId(empID, function(err, data){
+
+                    } )
+                }
             })
     }
 });

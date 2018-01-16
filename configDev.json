@@ -7,7 +7,7 @@
   "sysadmins":["380675612300","380637868770"],
   "sysadminsSchedule":"0 */1 * * * *",
   "adminSchedule":"0 */1 * * * *",
-  "userSchedule":"",
+  "cashierSchedule":"",
   "sysadminsMsgConfig":{
     "system":"C:","backup":"C:/GMSServer/BackUp/",
     "dbBackupFileName":"GMSData38_*.rar"

@@ -76,6 +76,56 @@ function startSendAdminMsgBySchedule(){                                         
     });
     scheduleAdminMsg.start();
 }
-startSendAdminMsgBySchedule();
-startSendSysAdminMsgBySchedule();
+var scheduleCashierMsg;
+function startSendCashierMsgBySchedule(){                                                                 logger.info("startSendCashierMsgBySchedule");
+    var serverConfig=database.getAppConfig();
+    var cashierSchedule=serverConfig.cashierSchedule;                                                       logger.info("cashierSchedule=",cashierSchedule);
+    if(!cashierSchedule) cashierSchedule='*/15 * * * * *';
+    var valid = cron.validate(cashierSchedule);
+    if(valid==false){                                                                                   logger.error("invalide cashierSchedule cron format "+adminSchedule);
+        return;
+    }
+    if(scheduleCashierMsg)scheduleCashierMsg.destroy();
+    scheduleCashierMsg =cron.schedule(cashierSchedule,
+        function(){
+            database.getCashierDataArr(function(err, res){
+                if(err){
+                    logger.error("Failed to get cashier array. Reason: "+err);
+                    return;
+                }
+                if(!res.recordset || res.recordset.length==0){
+                    logger.warn("No registered cashiers was found in DB.");
+                    return;
+                }
+                var cashierDataArr=res.recordset;
+                for (var k in cashierDataArr){
+                    var stockID=cashierDataArr[k]["StockID"];
+                    var TChatID;
+                    var StockName;
+                    var CRName;
+                    var cashierMsg="";
+                    database.getTRecByStockId(stockID, function(err, res){
+                        if(err){
+                            logger.error("Failed to get data from t_Rec by StockId. Reason: "+err);
+                            return;
+                        }
+                        if(res.recordset && res.recordset.length>0 ){
+                             cashierMsg+="<b>Числятся не подтвержденные приходные накладные: \n</b> ";
+                            var docListByStocId=res.recordset;
+                            for(var j in docListByStocId){
+                                cashierMsg += "Номер: "+docDatalist[k]["DocID"] +" от "+docDatalist[k]["DocID"]+".";
+                            }
+                            //if(cashierMsg) bot.sendMsg()
+                        }
+                    });
+                }
+                console.log("getCashierDataArr res=",res);
+            });
+
+        });
+    scheduleCashierMsg.start();
+}
+//startSendAdminMsgBySchedule();
+//startSendSysAdminMsgBySchedule();
+startSendCashierMsgBySchedule();
 app.listen(8182);
