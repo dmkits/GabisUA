@@ -134,7 +134,7 @@ module.exports.getTExcData=function(callback){
         });
 };
 
-module.exports.getCashierDataArr=function(callback){
+module.exports.getCashierDataArr=function(callback){  console.log("getCashierDataArr function");
     var request = new mssql.Request();
     request.query("select e.EmpID, e.EmpName, e.ShiftPostID, e.Mobile, e.TChatID, cr.StockID, cr.CRID, cr.CRName, st.StockName " +
         "from r_Emps e " +
@@ -160,7 +160,7 @@ module.exports.getTRecByStockId=function(stockID, callback){
     request.input('StockID', stockID);
     request.query("select m.DocID, m.DocDate, m.OurID, m.StockID, m.Notes, m.StateCode " +
         "from t_Rec m " +
-        "where m.StateCode=50 --and m.StockID=@StockID ",
+        "where m.StateCode=50 and m.StockID=@StockID ",
         function(err,res){
             if(err){
                 callback(err);

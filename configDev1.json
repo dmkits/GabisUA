@@ -4,10 +4,11 @@
   "database":"GMSSample38btkKlnk",
   "user":"sa",
   "password":"GMSgms123",
+  "botToken":"464525746:AAFVhlT6jp5cgaS02vtCUHpD0-z6_5wb8j4",
   "sysadmins":["380675612300","380637868770"],
   "sysadminsSchedule":"0 */1 * * * *",
   "adminSchedule":"0 */1 * * * *",
-  "cashierSchedule":"*/15 * * * * *",
+  "cashierSchedule":"0 */2 * * * *",
   "sysadminsMsgConfig":{
     "system":"/","backup":"/home/ianagez/IdeaProjects/GarbisTelBot/backup/",
     "dbBackupFileName":"GMSData38_*.rar"
