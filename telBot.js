@@ -217,6 +217,6 @@ function checkAndRegisterSysAdmin(msg, dbError=false){
 
 module.exports.sendMsgToChatId=function(chatId, msg, params={}){
     bot.sendMessage(chatId,msg, params).catch((error)=>{
-        logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);
+        logger.warn("Failed to send msg to user. Chat ID:"+ chatId+" Reason:error.response.body=",error.response.body);
     });
 };

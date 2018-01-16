@@ -110,12 +110,13 @@ function startSendCashierMsgBySchedule(){                                       
                             return;
                         }
                         if(res.recordset && res.recordset.length>0 ){
-                             cashierMsg+="<b>Числятся не подтвержденные приходные накладные: \n</b> ";
+                             cashierMsg+="\n<b>Числятся не подтвержденные приходные накладные:</b> ";
+                            cashierMsg+="\n<b>Числятся не подтвержденные приходные накладные:</b> ";
                             var docListByStocId=res.recordset;
                             for(var j in docListByStocId){
-                                cashierMsg += "Номер: "+docDatalist[k]["DocID"] +" от "+docDatalist[k]["DocID"]+".";
+                                cashierMsg += "\nНомер: "+docListByStocId[j]["DocID"] +" от "+docListByStocId[j]["DocDate"]+". ";
                             }
-                            //if(cashierMsg) bot.sendMsg()
+                            if(cashierMsg) bot.sendMsgToChatId("491124507", cashierMsg, {parse_mode:"HTML"});
                         }
                     });
                 }
