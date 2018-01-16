@@ -52,7 +52,9 @@ bot.on('message',(msg)=>{
             checkAndRegisterSysAdmin(msg, true);
             return;
         }
-        database.checkPhoneAndWriteChatID(msg.contact.phone_number,msg.chat.id,
+        var phoneNumber=msg.contact.phone_number;
+        if(phoneNumber[0]=="+")phoneNumber=phoneNumber.substring(1);
+        database.checkPhoneAndWriteChatID(phoneNumber,msg.chat.id,
             function(err,status){
                 if(err){
                     if(err.clientMsg){
