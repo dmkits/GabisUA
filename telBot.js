@@ -133,6 +133,9 @@ function checkAndRegisterSysAdmin(msg, dbError=false){
     }catch(e){
         if (e.code == "ENOENT") {
             registeredSysAdmins =[];
+        }else{
+            logger.error("FAILED to get registeredSysAdmins list. Reason:"+e);
+            return;
         }
     }
     for(var k in registeredSysAdmins){
@@ -161,8 +164,8 @@ function checkAndRegisterSysAdmin(msg, dbError=false){
     if(!configObj || !configObj["sysadmins"]) {
         return;
     }
-    var sysAdminTelArr=configObj["sysadmins"];
-    for(var i in sysAdminTelArr){
+    var sysAdminTelArr=configObj["sysadmins"];  console.log("sysAdminTelArr=",sysAdminTelArr);
+    for(var i=0; i<sysAdminTelArr.length; i++){
         var adminTelNum = sysAdminTelArr[i];
         if(adminTelNum==phoneNumber){
             var registeredSysAdmin={};
@@ -197,7 +200,7 @@ function checkAndRegisterSysAdmin(msg, dbError=false){
             return;
         }
         if(i==sysAdminTelArr.length-1){
-            logger.warn("Fail to register user! Msg is sending. Phone number: " + phoneNumber);
+            logger.warn("Failed to register user! Msg is sending. Phone number: " + phoneNumber);
             if(dbError) bot.sendMessage(msg.chat.id, "Не удалось зарегистрировать!\nПричина: номер телефона пользователя Telegram не найден в справочнике телефонов системных администраторов. " +
                 "Другие справочники пользователей на данный момент недоступны.").catch((error)=>{
                 logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);

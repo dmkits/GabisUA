@@ -3,7 +3,7 @@ var mssql=require('mssql');
 var fs= require('fs');
 var path=require('path');
 var DbConnectionError=null;
-var appConfig=null;
+var configName=null;
 var logger=require('./logger')();
 
 Promise.config({
@@ -35,13 +35,16 @@ module.exports.connectToDB=function(callback){
 };
 
 module.exports.setAppConfig=function(configFileName){
+    configName = configFileName;
+};
+
+module.exports.getAppConfig=function(){
+   var appConfig;
     try{
-        appConfig=JSON.parse(fs.readFileSync(path.join(__dirname, configFileName+'.json')))
+        appConfig=JSON.parse(fs.readFileSync(path.join(__dirname, configName+'.json')))
     }catch(e){
         logger.error("FAILED to get data from config file. Reason: "+ e);
     }
-};
-module.exports.getAppConfig=function(){
    return appConfig;
 };
 
