@@ -35,7 +35,7 @@ function startSendSysAdminMsgBySchedule(){                                      
         function(){
             msgManager.makeDiskUsageMsg(sysadminsMsgConfig, function(err, adminMsg){
                 if(err){
-                    logger.error(err);
+                    logger.error("FAILED to make disk usage msg. Reason: "+err);
                     return;
                 }
                 bot.sendMsgToAdmins(adminMsg, false);
@@ -58,12 +58,12 @@ function startSendAdminMsgBySchedule(){                                         
          function(){
             msgManager.makeUnconfirmedDocsMsg(function(err,adminMsg){
                 if(err) {
-                    logger.error(err);
+                    logger.error("Failed to make unconfirmed docs msg. Reasopn: "+err);
                     return;
                 }
                 database.getAdminChatIds(function(err, res){
                     if(err){
-                        logger.error(err);
+                        logger.error("FAILED to get admins chat ID. Reason: "+err);
                         return;
                     }
                     var adminChatArr=res;
@@ -76,6 +76,6 @@ function startSendAdminMsgBySchedule(){                                         
     });
     scheduleAdminMsg.start();
 }
-//startSendAdminMsgBySchedule();
-//startSendSysAdminMsgBySchedule();
+startSendAdminMsgBySchedule();
+startSendSysAdminMsgBySchedule();
 app.listen(8182);

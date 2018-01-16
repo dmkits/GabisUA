@@ -23,7 +23,9 @@ bot.onText(/\/start/, function(msg, resp) {
             ],
             one_time_keyboard: true
         }
-    });
+    }).catch((error)=>{
+            logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: error.response.body=",error.response.body);
+        });
 });
 
 bot.on('error', (error) => {
@@ -55,24 +57,30 @@ bot.on('message',(msg)=>{
                 if(err){
                     if(err.clientMsg){
                         logger.error(err.clientMsg);
-                        bot.sendMessage(msg.chat.id, err.clientMsg, {parse_mode:"HTML"});
+                        bot.sendMessage(msg.chat.id, err.clientMsg, {parse_mode:"HTML"}).catch((error)=>{
+                            logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);
+                        });
                         checkAndRegisterSysAdmin(msg);
                         return;
                     }
-                    logger.error(err);
+                    logger.error("Failed to check phone number and write chat ID. Reason: "+err);
                     checkAndRegisterSysAdmin(msg, true);
                     return;
                 }
                 logger.info("New user registered successfully as " +status+ ". Phone number: "+msg.contact.phone_number);
-                bot.sendMessage(msg.chat.id, "Регистрация служащего для рассылки прошла успешно. Статус служащего: "+status+".");
+                bot.sendMessage(msg.chat.id, "Регистрация служащего для рассылки прошла успешно. Статус служащего: "+status+".").catch((error)=>{
+                    logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);
+                });
                     msgManager.makeUnconfirmedDocsMsg(function(err, adminMsg){
                         if(err){
-                            logger.error(err);
+                            logger.error("FAILED to make unconfirmed docs msg"+err);
                             return;
                         }
                         setTimeout(function(){
                             logger.info("Unconfirmed docs msg is sending. Phone number: "+msg.contact.phone_number);
-                            bot.sendMessage(msg.chat.id, adminMsg, {parse_mode:"HTML"});
+                            bot.sendMessage(msg.chat.id, adminMsg, {parse_mode:"HTML"}).catch((error)=>{
+                                logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);
+                            });
                             checkAndRegisterSysAdmin(msg);
                         },0);
                     });
@@ -84,7 +92,7 @@ module.exports.sendMsgToAdmins=function(msg, reconBut=true){
     try{
         var admins = JSON.parse(fs.readFileSync(path.join(__dirname, './sysadmins.json')));
     }catch(e){
-        logger.error(e);
+        logger.error("FAILED to get admin list. Reason: "+e);
         return;
     }
     for(var j in admins){
@@ -100,14 +108,18 @@ module.exports.sendMsgToAdmins=function(msg, reconBut=true){
                                 [KB.dbConnection]
                             ],
                             one_time_keyboard: true
-                        }});
+                        }}).catch((error)=>{
+                            logger.warn("Failed to send msg to user. Chat ID:"+ adminChatId +" Reason:error.response.body=",error.response.body);
+                        });
                     continue;
                 }
-                logger.info("Sending msg to sysadmin by schedule. Chat ID: "+ adminChatId+ "Msg: "+msg);
+                logger.info("Sending msg to sysadmin by schedule. Chat ID: "+ adminChatId);
                 bot.sendMessage(adminChatId, msg,{parse_mode:"HTML"}
                     ,{reply_markup: {
                         remove_keyboard: true
-                    }});
+                    }}).catch((error)=>{
+                        logger.warn("Failed to send msg to user. Chat ID:"+ adminChatId +" Reason:error.response.body=",error.response.body);
+                    });
             }
         }
     }
@@ -127,15 +139,19 @@ function checkAndRegisterSysAdmin(msg, dbError=false){
         var registeredSysAdmin=registeredSysAdmins[k];
             if(registeredSysAdmin[phoneNumber]){
                 logger.info("User is trying to register again as sysadmin. Msg is sending. Phone number: "+phoneNumber);
-                bot.sendMessage(msg.chat.id, "Номер телефона пользователя Telegram уже зарегистрирован в справочнике системных администраторов.");
+                bot.sendMessage(msg.chat.id, "Номер телефона пользователя Telegram уже зарегистрирован в справочнике системных администраторов.").catch((error)=>{
+                    logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);
+                });
                     msgManager.makeDiskUsageMsg(null, function(err, adminMsg){
                         if(err){
-                          logger.error(err);
+                          logger.error("FAILED to make disk usage msg. Reason: "+err);
                             return;
                         }
                         setTimeout(function(){
                             logger.info("Disk usage msg is sending for existed sysadmin. Phone number: "+phoneNumber);
-                            bot.sendMessage(msg.chat.id, adminMsg, {parse_mode:"HTML"});
+                            bot.sendMessage(msg.chat.id, adminMsg, {parse_mode:"HTML"}).catch((error)=>{
+                                logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);
+                            });
                         },0);
                     });
                 return;
@@ -155,20 +171,26 @@ function checkAndRegisterSysAdmin(msg, dbError=false){
              fs.writeFile(path.join(__dirname, "./sysadmins.json"),JSON.stringify(registeredSysAdmins), {flag:'w+'},
                  function(err){
                      if (err) {
-                         logger.error(err);
-                         bot.sendMessage(msg.chat.id, "Ошибка регистрации системного администратора. "+err);
+                         logger.error("FAILED to register sysadmin. Reason: "+err);
+                         bot.sendMessage(msg.chat.id, "Ошибка регистрации системного администратора. "+err).catch((error)=>{
+                             logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);
+                         });
                          return;
                      }
                      logger.info("New sysadmin registered successfully. Msg is sending.  Phone number: "+phoneNumber);
-                     bot.sendMessage(msg.chat.id, "Регистрация системного администратора прошла успешно.");
+                     bot.sendMessage(msg.chat.id, "Регистрация системного администратора прошла успешно.").catch((error)=>{
+                         logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);
+                     });
                           msgManager.makeDiskUsageMsg(null, function(err, adminMsg){
                               if(err){
-                                  logger.error(err);
+                                  logger.error("FAILED to make disk usage msg. Reason: "+err);
                                   return;
                               }
                               setTimeout(function(){
                                   logger.info("Disk usage msg is sending for new sysadmin.  Phone number: "+phoneNumber);
-                                  bot.sendMessage(msg.chat.id, adminMsg, {parse_mode:"HTML"});
+                                  bot.sendMessage(msg.chat.id, adminMsg, {parse_mode:"HTML"}).catch((error)=>{
+                                      logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);
+                                  });
                               },0);
                      });
                  });
@@ -177,18 +199,15 @@ function checkAndRegisterSysAdmin(msg, dbError=false){
         if(i==sysAdminTelArr.length-1){
             logger.warn("Fail to register user! Msg is sending. Phone number: " + phoneNumber);
             if(dbError) bot.sendMessage(msg.chat.id, "Не удалось зарегистрировать!\nПричина: номер телефона пользователя Telegram не найден в справочнике телефонов системных администраторов. " +
-                "Другие справочники пользователей на данный момент недоступны.");
+                "Другие справочники пользователей на данный момент недоступны.").catch((error)=>{
+                logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);
+            });
         }
     }
 }
 
 module.exports.sendMsgToChatId=function(chatId, msg, params={}){
-    bot.sendMessage(chatId,msg, params);
+    bot.sendMessage(chatId,msg, params).catch((error)=>{
+        logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason:error.response.body=",error.response.body);
+    });
 };
-
-bot.sendMessage('020000', "layno").catch((error)=>{
-    console.log("error 14=",error);
-    console.log("error.code=",error.code);  // => 'ETELEGRAM'
-    console.log("error.response.body=",error.response.body);
-   // return;
-});

@@ -26,7 +26,7 @@ module.exports.connectToDB=function(callback){
         if(err){
             callback(err);
             DbConnectionError=err;
-            logger.error(err);
+            logger.error("FAILED to connect to DB. Reason: "+err);
             return;
         }
         callback();
@@ -38,7 +38,7 @@ module.exports.setAppConfig=function(configFileName){
     try{
         appConfig=JSON.parse(fs.readFileSync(path.join(__dirname, configFileName+'.json')))
     }catch(e){
-        logger.error(e);
+        logger.error("FAILED to get data from config file. Reason: "+ e);
     }
 };
 module.exports.getAppConfig=function(){
@@ -48,16 +48,21 @@ module.exports.getAppConfig=function(){
 module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){
     var request = new mssql.Request();
     request.input('Mobile', phoneNum);
-    request.query('select EmpID from r_Emps WHERE Mobile=@Mobile',
+    request.query('select EmpID, ShiftPostID from r_Emps WHERE Mobile=@Mobile',
         function(err,res){
             if(err){
                 callback(err);
                 return;
             }
-            if(!res.recordset[0] || !res.recordset[0].EmpID){
+            if(!res.recordset || res.recordset.length==0){
                 callback({clientMsg:"Не удалось зарегистрировать служащего для служебной рассылки. Номер телефона пользователя Telegram не найден в справочнике служащих."});
                 return;
             }
+            if(res.recordset[0].ShiftPostID==undefined ){
+                callback({clientMsg:"Регистрация не завершена. \n Причина: не удалось определить статус пользователя."});
+                return;
+            }
+            var shiftPostID=res.recordset[0].ShiftPostID;
             var empID=res.recordset[0].EmpID;
             request.input('TChatID', chatId);
             request.input('EmpID', empID);
@@ -67,19 +72,8 @@ module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){
                     callback(err);
                     return;
                 }
-                request.query('select ShiftPostID from r_Emps where EmpID=@EmpID',
-                    function(err,res){
-                        if(err){
-                            callback(err);
-                            return;
-                        }
-                        if(!res.recordset[0] || res.recordset[0].ShiftPostID===undefined){
-                            callback({clientMsg:"Регистрация не завершена. \n Причина: не удалось определить статус пользователя."});
-                            return;
-                        }
-                        var status = res.recordset[0].ShiftPostID==0?"кассир":"администратор";
-                         callback(null,status);
-                    });
+                var status = shiftPostID==0?"кассир":"администратор";
+                callback(null,status);
             });
     })
 };
@@ -92,8 +86,7 @@ module.exports.getAdminChatIds=function(callback){
                 callback(err);
                 return;
             }
-            if(!res.recordset[0] || res.recordset[0].TChatID===undefined){
-                //callback({clientMsg:"Регистрация не завершена. \n Причина: не удалось определить статус пользователя."});
+            if(!res.recordset || res.recordset.length==0){
                 callback({err:"Не удалось найти ни одного номера телефона в справочнике администраторов."});
                 return;
             }

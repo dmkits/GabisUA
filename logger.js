@@ -6,11 +6,9 @@ var dateformat=require("dateformat");
 function makeLogger(){
     var logDir= path.join(__dirname, './logs/');
     try {
-        if (!fs.existsSync(logDir)) {
-            fs.mkdirSync(logDir);
-        }
+        if (!fs.existsSync(logDir))fs.mkdirSync(logDir);
     }catch (e){
-        console.log("FAIL to make log file. Reason: ",e);
+        console.log("FAILED to make log directory. Reason: ",e);
     }
     var transports  = [];
     transports.push(new (require('winston-daily-rotate-file'))({
