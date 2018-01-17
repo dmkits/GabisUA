@@ -3,6 +3,7 @@ var diskusage = require('diskusage-ng');
 var fs = require('fs');
 var path = require('path');
 var moment = require('moment');
+var bot=require('./telBot.js');
 
 module.exports.makeDiskUsageMsg=function(sysadminsMsgConfig, callback){
     var adminMsg='<b>Информация системному администратору на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> \n';
@@ -29,7 +30,7 @@ module.exports.makeDiskUsageMsg=function(sysadminsMsgConfig, callback){
                 adminMsg +='\n '+err;
             }
             if(lastBackpupFile && lastBackpupFile.backupDate && lastBackpupFile.fileName){
-                adminMsg+="\n Последняя резервная копия БД "+ lastBackpupFile.fileName+" от " + moment(lastBackpupFile.backupDate).format("DD-MM-YYYY HH:mm:ss");
+                adminMsg+="\n Последняя резервная копия БД "+ lastBackpupFile.fileName+" от " + moment(lastBackpupFile.backupDate).format("DD.MM.YYYY HH:mm:ss");
             }
             callback(null,adminMsg);
         })
@@ -154,3 +155,75 @@ function getLastBackupFile(sysadminsMsgConfig, callback){
     }
     callback(null, lastBackpupFile);
 }
+
+module.exports.makeCashierMsg=function(cashierData, callback){
+    var stockID=cashierData["StockID"];
+    // var TChatID=cashierDataArr[k]["TChatID"];
+    var StockName=cashierData["StockName"];
+    var CRName=cashierData["CRName"];
+    var cashierMsg="";
+    database.getTRecByStockId(stockID, function(err, res){
+        if(err){
+            callback(err);
+            return;
+        }
+        if(res.recordset && res.recordset.length>0){
+            cashierMsg='<b>Информация кассиру на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> ';
+            cashierMsg+="\n<b>Касса:</b> "+ CRName +"\n<b>Склад:</b> "+StockName;
+            cashierMsg+="\n<b>Неподтвержденные приходные накладные:</b> ";
+            var unconfirmedRecArr=res.recordset;
+            for(var j in unconfirmedRecArr){
+                cashierMsg += "\n &#12539 № "+unconfirmedRecArr[j]["DocID"] +" от "+moment(unconfirmedRecArr[j]["DocDate"]).format("DD.MM.YYYY");
+            }
+            database.getTExcByStockId(stockID,function(err, res){
+                if(err){
+                    callback(err);
+                    return;
+                }
+                if(res.recordset && res.recordset.length>0) {
+                    cashierMsg += "\n<b>Неподтвержденные накладные перемещения:</b> ";
+                    var unconfirmedExcArr = res.recordset;
+                    for (var j in unconfirmedExcArr) {
+                        cashierMsg += "\n &#12539 № " + unconfirmedExcArr[j]["DocID"] + " от " + moment(unconfirmedExcArr[j]["DocDate"]).format("DD.MM.YYYY");
+                    }
+                }
+                callback(null,cashierMsg);
+            })
+        }else{
+            database.getTExcByStockId(stockID,function(err, res){
+                if(err){
+                    callback(err);
+                    return;
+                }
+                if(res.recordset && res.recordset.length>0) {
+                    cashierMsg='<b>Информация кассиру на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> ';
+                    cashierMsg+="\n<b>Касса:</b> "+ CRName +"\n<b>Склад:</b> "+StockName;
+                    cashierMsg+= "\n<b>Неподтвержденные накладные перемещения:</b> ";
+                    var unconfirmedExcArr = res.recordset;
+                    for (var j in unconfirmedExcArr) {
+                        cashierMsg += "\n &#12539 № " + unconfirmedExcArr[j]["DocID"] + " от " + moment(unconfirmedExcArr[j]["DocDate"]).format("DD.MM.YYYY");
+                    }
+                }
+                callback(null,cashierMsg);
+            });
+        }
+    });
+};
+
+module.exports.sendCashierMsgRecursively=function(index, cashierDataArr, callback){
+    if(!cashierDataArr[index]){
+        console.log("ALL DONE");
+        if(callback)callback();
+        return;
+    }
+    var cashierData=cashierDataArr[index];
+     var TChatID=cashierDataArr[index]["TChatID"];
+    module.exports.makeCashierMsg(cashierData, function(err, resMsg){
+        if(err){
+            logger.error("FAILED to create msg for cashier. Reason: "+err);
+            return;
+        }
+        if(resMsg) bot.sendMsgToChatId(TChatID, resMsg, {parse_mode:"HTML"});
+        module.exports.sendCashierMsgRecursively(index+1,cashierDataArr,callback);
+    });
+};

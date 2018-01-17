@@ -51,36 +51,26 @@ module.exports.getAppConfig=function(){
 module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){
     var request = new mssql.Request();
     request.input('Mobile', phoneNum);
-    request.query('select EmpID, ShiftPostID from r_Emps WHERE Mobile=@Mobile',
+    request.query('select EmpID, EmpName, ShiftPostID from r_Emps WHERE Mobile=@Mobile',
         function(err,res){
             if(err){
                 callback(err);
                 return;
             }
-            if(!res.recordset || res.recordset.length==0){
-                callback({clientMsg:"Не удалось зарегистрировать служащего для служебной рассылки. Номер телефона пользователя Telegram не найден в справочнике служащих."});
-                return;
-            }
-            if(res.recordset[0].ShiftPostID==undefined ){
-                callback({clientMsg:"Регистрация не завершена. \n Причина: не удалось определить статус пользователя."});
-                return;
-            }
-            var recordset=res.recordset;
-            for (var i in recordset ){
-                var shiftPostID=res.recordset[i].ShiftPostID;
-                var empID=res.recordset[i].EmpID;
-                request.input('TChatID', chatId);
-                request.input('EmpID', empID);
-                request.query('update r_Emps set TChatID=@TChatID where EmpID=@EmpID ',
-                    function(err, res){
-                        if(err){
-                            callback(err);
-                            return;
-                        }
-                        var status = shiftPostID==0?"кассир":"администратор";
-                        callback(null,status, empID);
-                    });
-            }
+            var employeeDataArr  =res.recordset;
+            //if(!employeeDataArr || employeeDataArr.length==0){
+            //    callback(null,employeeDataArr);
+            //    return;
+            //}
+            request.input('TChatID', chatId);
+            request.query('update r_Emps set TChatID=@TChatID where Mobile=@Mobile',
+                function(err, res){
+                    if(err){
+                        callback(err);
+                        return;
+                    }
+                    callback(null,employeeDataArr);
+                });
     })
 };
 
@@ -134,18 +124,24 @@ module.exports.getTExcData=function(callback){
         });
 };
 
-module.exports.getCashierDataArr=function(callback){  console.log("getCashierDataArr function");
+module.exports.getCashierDataArr=function(EmpID, callback){  console.log("getCashierDataArr function");
     var request = new mssql.Request();
-    request.query("select e.EmpID, e.EmpName, e.ShiftPostID, e.Mobile, e.TChatID, cr.StockID, cr.CRID, cr.CRName, st.StockName " +
+    var queryStr="select e.EmpID, e.EmpName, e.ShiftPostID, e.Mobile, e.TChatID, cr.StockID, cr.CRID, cr.CRName, st.StockName " +
         "from r_Emps e " +
         "inner join r_Opers op on op.EmpID=e.EmpID " +
         "inner join r_OperCRs opcr on opcr.OperID=op.OperID " +
         "inner join r_CRs cr on cr.CRID=opcr.CRID " +
         "inner join r_Stocks st on st.StockID=cr.StockID " +
-        "where e.ShiftPostID=0 " +
-        //"and LTRIM(ISNULL(Mobile,''))<>'' "+
-        //"and LTRIM(ISNULL(TChatID,''))<>'' " +
-        "order by e.EmpID, cr.StockID",
+        "where e.ShiftPostID=0 ";
+    if(EmpID){
+        request.input('EmpID', EmpID);
+        queryStr+="and e.EmpID=@EmpID "
+    }
+    queryStr+="and LTRIM(ISNULL(Mobile,''))<>'' "+
+              "and LTRIM(ISNULL(TChatID,''))<>'' " +
+              "order by e.EmpID, cr.StockID";
+    console.log("queryStr=",queryStr);
+    request.query(queryStr,
         function(err,res){
             if(err){
                 callback(err);
@@ -170,71 +166,20 @@ module.exports.getTRecByStockId=function(stockID, callback){
         });
 };
 
+module.exports.getTExcByStockId=function(stockID, callback){  console.log("getTExcByStockId stockID=",stockID);
+    var request = new mssql.Request();
+    request.input('StockID', stockID);
+    request.query("select m.DocID, m.DocDate, m.OurID, m.NewStockID, m.Notes, m.StateCode " +
+        "from t_Exc m " +
+        "where m.StateCode in(50,56)  " +
+        "and m.NewStockID=@StockID",
+        function(err,res){
+            if(err){
+                callback(err);
+                return;
+            }
+            callback(null,res);
+        });
+};
 
-//
-//module.exports.getCashierMsgDataByEmpId=function(empId, callback){
-//    var request = new mssql.Request();
-//    request.input('EmpID', empId);
-//    request.query("select  e.EmpName, cr.StockID, cr.CRID, cr.CRName, st.StockName " +
-//        "from r_Emps e inner join r_Opers op on op.EmpID=e.EmpID " +
-//        "inner join r_OperCRs opcr on opcr.OperID=op.OperID " +
-//        "inner join r_CRs cr on cr.CRID=opcr.CRID " +
-//        "inner join r_Stocks st on st.StockID=cr.StockID " +
-//        "where e.ShiftPostID=0 and LTRIM(ISNULL(Mobile,''))<>'' " +
-//        "and LTRIM(ISNULL(TChatID,''))<>'' " +
-//        "and e.EmpID=@EmpID order by e.EmpID, cr.StockID",
-//        function(err,res){
-//            if(err){
-//                callback(err);
-//                return;
-//            }
-//            if(!res.recordset || res.recordset.length==0){
-//                callback({err:"Failed get cashier msg data for EmpID:"+empId});
-//                return;
-//            }
-//            var recordset=res.recordset;
-//            for(var i in recordset){
-//                var docDate=recordset[i]["DocDate"];
-//                var docID=recordset[i]["DocID"];
-//            }
-//            var msgTRecList="<b>Числятся не подтвержденные приходные накладные: \n</b> ";
-//            getTRecListMsg(0,recordset,msgTRecList, function(err,msg){
-//                if(err){
-//
-//                }
-//
-//            });
-//            //callback(null,res.recordset);
-//        });
-//};
-//
-//function getTRecListMsg(index, data, msgTRecList, callback){
-//    if(!data){
-//        callback(null, msgTRecList);
-//        return;
-//    }
-//    var stockID=data[index]["StockID"];
-//    var stockName;
-//    var CRName;
-//    var request = new mssql.Request();
-//    request.input('StockID', stockID);
-//    request.query("select m.DocID, m.DocDate, m.OurID, m.StockID, m.Notes, m.StateCode " +
-//        "from t_Rec m " +
-//        "where m.StateCode=50 and m.StockID=@StockID",
-//        function(err, res){
-//            if(err){
-//                callback({error:err});
-//                return;
-//            }
-//            //msgTRecList +="Не подтвержденные приходные накладные: \n ";
-//            var docDatalist=res.recordset;
-//            msgTRecList += "Касса: "+data[index]["CRName"] +". Склад: "+data[index]["StockName"]+".";
-//            for(var k in docDatalist){
-//                msgTRecList += "Номер: "+docDatalist[k]["DocID"] +" от "+docDatalist[k]["DocID"]+".";
-//            }
-//            getTRecListMsg(index, data, callback,msgTRecList)
-//    })
-//};
-//
-//module.exports.getTRecByStockId=function();
 

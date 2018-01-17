@@ -6,9 +6,9 @@
   "password":"GMSgms123",
   "botToken":"464525746:AAFVhlT6jp5cgaS02vtCUHpD0-z6_5wb8j4",
   "sysadmins":["380675612300","380637868770"],
-  "sysadminsSchedule":"0 */1 * * * *",
-  "adminSchedule":"0 */1 * * * *",
-  "cashierSchedule":"",
+  "sysadminsSchedule":"0 */30 18-22/1 * * *",
+  "adminSchedule":"0 */20 18-22/1 * * *",
+  "cashierSchedule":"0 */15 18-22/1 * * *",
   "sysadminsMsgConfig":{
     "system":"C:","backup":"C:/GMSServer/BackUp/",
     "dbBackupFileName":"GMSData38_*.rar"

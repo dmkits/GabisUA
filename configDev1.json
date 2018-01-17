@@ -6,8 +6,8 @@
   "password":"GMSgms123",
   "botToken":"464525746:AAFVhlT6jp5cgaS02vtCUHpD0-z6_5wb8j4",
   "sysadmins":["380675612300","380637868770"],
-  "sysadminsSchedule":"0 */1 * * * *",
-  "adminSchedule":"0 */1 * * * *",
+  "sysadminsSchedule":"0 */15 * * * *",
+  "adminSchedule":"0 */10 * * * *",
   "cashierSchedule":"0 */2 * * * *",
   "sysadminsMsgConfig":{
     "system":"/","backup":"/home/ianagez/IdeaProjects/GarbisTelBot/backup/",
