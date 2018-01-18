@@ -103,9 +103,9 @@ function startSendCashierMsgBySchedule(){                                       
         });
     scheduleCashierMsg.start();
 }
-startSendAdminMsgBySchedule();
-startSendSysAdminMsgBySchedule();
-startSendCashierMsgBySchedule();
+//startSendAdminMsgBySchedule();
+//startSendSysAdminMsgBySchedule();
+//startSendCashierMsgBySchedule();
 app.listen(8182);
 
 

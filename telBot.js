@@ -2,33 +2,58 @@ var Promise = require('bluebird');
 var TelegramBot = require('node-telegram-bot-api');
 var fs=require('fs');
 var path = require('path');
+var pdf = require('html-pdf');
 //var TOKEN='491349310:AAG0qRPlpmJucU0hRZXzzwhlgo5yjt-zOjQ'; //Garbis
 //var TOKEN='464525746:AAFVhlT6jp5cgaS02vtCUHpD0-z6_5wb8j4';   //GarbisDev
 var database=require('./database');
 //var appConfig=database.getAppConfig();
 //var TOKEN=appConfig['botToken'];
-var TOKEN=database.getAppConfig()['botToken'];
+//var TOKEN=database.getAppConfig()['botToken'];  //525453016:AAGDfQLPR5fOeU02_6VsQEyPdkQHnJJa6Qk
+var TOKEN="525453016:AAGDfQLPR5fOeU02_6VsQEyPdkQHnJJa6Qk";
 var logger=require('./logger')();
 var bot = new TelegramBot(TOKEN, {polling: true});
 var msgManager=require('./msgManager');
+
+var htmlConvert = require('html-convert');
+var convert = htmlConvert(/*{width : 300, height : 3000}*/);
 
 var KB={
     registration:'Зарегистироваться',
     dbConnection:'Подключиться к БД'
 };
 
+fs.createReadStream(path.join(__dirname,'test_table.html'))
+    .pipe(convert())
+    .pipe(fs.createWriteStream(path.join(__dirname,'out.jpg')));
+
 bot.onText(/\/start/, function(msg, resp) {
-    logger.info("New chat started. Greeting msg is sending. Chat ID: "+msg.chat.id);
-    bot.sendMessage(msg.chat.id, "Здравствуйте! \n Пожалуйста, зарегистрируйтесь для получения сообщений.", {
-        reply_markup: {
-            keyboard: [
-                [{text:KB.registration , "request_contact": true}]
-            ],
-            one_time_keyboard: true
-        }
-    }).catch((error)=>{
-            logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: error.response.body=",error.response.body);
-        });
+    //logger.info("New chat started. Greeting msg is sending. Chat ID: "+msg.chat.id);
+    //bot.sendMessage(msg.chat.id, " #f0c080 Здравствуйте! \n Пожалуйста, зарегистрируйтесь для получения сообщений.", {
+    //    reply_markup: {
+    //        keyboard: [
+    //            [{text:KB.registration , "request_contact": true}]
+    //        ],
+    //        one_time_keyboard: true
+    //    }
+    //}).catch((error)=>{
+    //        logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: error.response.body=",error.response.body);
+    //    });
+    //var html = fs.readFileSync(path.join(__dirname,'test_table.html'), 'utf8');
+    //var options = { format: 'Legal' };
+    //pdf.create(html, options).toFile(path.join(__dirname,'businesscard.pdf'), function(err, res) {
+    //    if (err) return console.log(err);
+    //    console.log(res); // { filename: '/app/businesscard.pdf' }
+    //});
+
+
+
+            bot.sendPhoto(msg.chat.id, path.join(__dirname,'out.jpg'));
+
+  // var photo=fs.readFileSync(path.join(__dirname,'out.jpg'));
+   // bot.sendPhoto(msg.chat.id, path.join(__dirname,'out.jpg'));
+    //bot.sendDocument(msg.chat.id, photo);
+
+
 });
 
 bot.on('error', (error) => {

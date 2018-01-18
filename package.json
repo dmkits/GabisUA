@@ -11,6 +11,8 @@
     "express": "^4.16.2",
     "fd-diskspace": "^1.0.0",
     "fs": "0.0.1-security",
+    "html-convert": "^2.1.7",
+    "html-pdf": "^2.2.0",
     "moment": "^2.20.1",
     "mssql": "^4.1.0",
     "node-cron": "^1.2.1",
