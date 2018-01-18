@@ -32,7 +32,7 @@ bot.onText(/\/start/, function(msg, resp) {
 });
 
 bot.on('error', (error) => {
-   console.log("EVENT error=",error);
+    logger.error("Bot ERROR=",error);
 });
 
 bot.on('polling_error', (error) => {

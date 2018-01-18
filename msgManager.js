@@ -212,7 +212,6 @@ module.exports.makeCashierMsg=function(cashierData, callback){
 
 module.exports.sendCashierMsgRecursively=function(index, cashierDataArr, callback){
     if(!cashierDataArr[index]){
-        console.log("ALL DONE");
         if(callback)callback();
         return;
     }
