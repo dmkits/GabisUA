@@ -163,7 +163,7 @@ function checkAndRegisterSysAdmin(msg, callback){
     if(!configObj || !configObj["sysadmins"]) {
         return;
     }
-    var sysAdminTelArr=configObj["sysadmins"];  console.log("sysAdminTelArr=",sysAdminTelArr);
+    var sysAdminTelArr=configObj["sysadmins"];
     for(var i=0; i<sysAdminTelArr.length; i++){
         var adminTelNum = sysAdminTelArr[i];
         if(adminTelNum==phoneNumber){
@@ -211,7 +211,6 @@ module.exports.sendMsgToChatId=function(chatId, msg, params={}){
 
 function sendMsgToAllUsersWithPhone(index, employeeData,mobile,chatId){
     if(!employeeData[index]) {
-        console.log("ALL employee was sent a msg.");
         return;
     }
     var employee=employeeData[index];

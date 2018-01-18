@@ -96,7 +96,7 @@ module.exports.getTRecData=function(callback){
         "from t_Rec m " +
         "inner join r_Stocks st on st.StockID=m.StockID" +
         " where m.StateCode=50" +
-        " group by m.StockID, st.StockName " +
+        "group by m.StockID, st.StockName " +
         "order by m.StockID",
         function(err,res){
             if(err){
@@ -112,7 +112,7 @@ module.exports.getTExcData=function(callback){
     request.query("select m.NewStockID, st.StockName, Count(1) as Total " +
         "from t_Exc m " +
         "inner join r_Stocks st on st.StockID=m.NewStockID " +
-        "where m.StateCode=56 " +
+        "where m.StateCode in (56,50) " +
         "group by m.NewStockID, st.StockName " +
         "order by m.NewStockID",
         function(err,res){
@@ -124,7 +124,7 @@ module.exports.getTExcData=function(callback){
         });
 };
 
-module.exports.getCashierDataArr=function(EmpID, callback){  console.log("getCashierDataArr function");
+module.exports.getCashierDataArr=function(EmpID, callback){
     var request = new mssql.Request();
     var queryStr="select e.EmpID, e.EmpName, e.ShiftPostID, e.Mobile, e.TChatID, cr.StockID, cr.CRID, cr.CRName, st.StockName " +
         "from r_Emps e " +
@@ -140,7 +140,6 @@ module.exports.getCashierDataArr=function(EmpID, callback){  console.log("getCas
     queryStr+="and LTRIM(ISNULL(Mobile,''))<>'' "+
               "and LTRIM(ISNULL(TChatID,''))<>'' " +
               "order by e.EmpID, cr.StockID";
-    console.log("queryStr=",queryStr);
     request.query(queryStr,
         function(err,res){
             if(err){
@@ -156,7 +155,8 @@ module.exports.getTRecByStockId=function(stockID, callback){
     request.input('StockID', stockID);
     request.query("select m.DocID, m.DocDate, m.OurID, m.StockID, m.Notes, m.StateCode " +
         "from t_Rec m " +
-        "where m.StateCode=50 and m.StockID=@StockID ",
+        "where m.StateCode=50 and m.StockID=@StockID "+
+        "order by m.DocDate, m.DocID",
         function(err,res){
             if(err){
                 callback(err);
@@ -166,13 +166,14 @@ module.exports.getTRecByStockId=function(stockID, callback){
         });
 };
 
-module.exports.getTExcByStockId=function(stockID, callback){  console.log("getTExcByStockId stockID=",stockID);
+module.exports.getTExcByStockId=function(stockID, callback){
     var request = new mssql.Request();
     request.input('StockID', stockID);
     request.query("select m.DocID, m.DocDate, m.OurID, m.NewStockID, m.Notes, m.StateCode " +
         "from t_Exc m " +
         "where m.StateCode in(50,56)  " +
-        "and m.NewStockID=@StockID",
+        "and m.NewStockID=@StockID "+
+        "order by m.DocDate, m.DocID",
         function(err,res){
             if(err){
                 callback(err);
