@@ -2,15 +2,15 @@ var Promise = require('bluebird');
 var TelegramBot = require('node-telegram-bot-api');
 var fs=require('fs');
 var path = require('path');
-//var TOKEN='491349310:AAG0qRPlpmJucU0hRZXzzwhlgo5yjt-zOjQ'; //Garbis
-//var TOKEN='464525746:AAFVhlT6jp5cgaS02vtCUHpD0-z6_5wb8j4';   //GarbisDev
 var database=require('./database');
-//var appConfig=database.getAppConfig();
-//var TOKEN=appConfig['botToken'];
 var TOKEN=database.getAppConfig()['botToken'];
 var logger=require('./logger')();
 var bot = new TelegramBot(TOKEN, {polling: true});
 var msgManager=require('./msgManager');
+
+Promise.config({
+    cancellation: true
+});
 
 var KB={
     registration:'Зарегистироваться',
@@ -243,7 +243,7 @@ function sendMsgToAllUsersWithPhone(index, employeeData,mobile,chatId){
                 return;
             }
             var cashierDataArr=res.recordset;
-            msgManager.sendCashierMsgRecursively(0,cashierDataArr, function(){
+            msgManager.sendCashierMsgRecursively(0,cashierDataArr, false, function(){
                 sendMsgToAllUsersWithPhone(index+1, employeeData,mobile,chatId);
             });
         })

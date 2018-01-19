@@ -7,7 +7,7 @@ var cron = require('node-cron');
 var moment = require('moment');
 var logger=require('./logger')();
 
-var configFileNameParam=process.argv[2];
+var configFileNameParam=process.argv[2] || "config";
 
 database.setAppConfig(configFileNameParam);
 var bot=require('./telBot.js');
@@ -98,7 +98,7 @@ function startSendCashierMsgBySchedule(){                                       
                     return;
                 }
                 var cashierDataArr=res.recordset;
-                msgManager.sendCashierMsgRecursively(0,cashierDataArr);
+                msgManager.sendCashierMsgRecursively(0,cashierDataArr, true);
             });
         });
     scheduleCashierMsg.start();

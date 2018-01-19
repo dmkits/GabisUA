@@ -1,2 +1,5 @@
 ,{"id":"222","name":"Dmitry","tel":"380675612300","chatId":506680085}
 {"id":"111","name":"Iana","tel":"380637868770","chatId":491124507}
+
+//var TOKEN='491349310:AAG0qRPlpmJucU0hRZXzzwhlgo5yjt-zOjQ'; //Garbis
+//var TOKEN='464525746:AAFVhlT6jp5cgaS02vtCUHpD0-z6_5wb8j4';   //GarbisDev

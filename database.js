@@ -1,14 +1,9 @@
-var Promise = require('bluebird');
 var mssql=require('mssql');
 var fs= require('fs');
 var path=require('path');
 var DbConnectionError=null;
 var configName=null;
 var logger=require('./logger')();
-
-Promise.config({
-    cancellation: true
-});
 
 module.exports.getDbConnectionError= function(){
     return DbConnectionError;
@@ -183,4 +178,33 @@ module.exports.getTExcByStockId=function(stockID, callback){
         });
 };
 
+module.exports.getTSestByStockId=function(stockID, callback){
+    var request = new mssql.Request();
+    request.input('StockID', stockID);
+    request.query("select distinct m.ChID, m.DocID, m.DocDate " +
+        "from t_SEst m inner join t_SEstD d on  d.ChID=m.ChID and d.StockID=@StockID " +
+        "where m.DocDate=dbo.zf_GetDate(GETDATE()) " +
+        "and ISNULL((select Count(1) from it_SEstTBotMsgSends " +
+        "where ChID=m.ChID group by ChID),0)<3",
+        function(err,res){
+            if(err){
+                callback(err);
+                return;
+            }
+            callback(null,res);
+        });
+};
+
+module.exports.setSEstMsgCount=function(ChID,callback){
+    var request = new mssql.Request();
+    request.query("insert into it_SEstTBotMsgSends(ChID,MsgSendsDate) values ("+ChID+", GETDATE())",
+        function(err,res){
+            if(err){
+                if(err){
+                    logger.error("FAILED to insert to  msgCount in it_SEstTBotMsgSends.Reason: "+err);
+                }
+            }
+            callback();
+        });
+};
 

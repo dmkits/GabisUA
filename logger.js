@@ -1,7 +1,7 @@
 var winston = require('winston');
 var fs=require('fs');
 var path=require('path');
-var dateformat=require("dateformat");
+var moment = require('moment');
 
 function makeLogger(){
     var logDir= path.join(__dirname, './logs/');
@@ -16,15 +16,15 @@ function makeLogger(){
         datePattern: '.yyyy-MM-dd',
         filename: path.join(logDir, "log_file.log"),
         timestamp:function() {
-            return dateformat(Date.now(), "yyyy-mm-dd HH:MM:ss.l");
+            return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
         }
     }));
     transports.push(new (winston.transports.Console)({timestamp:function() {
-        return dateformat(Date.now(), "yyyy-mm-dd HH:MM:ss.l");
+        return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
     }}));
 
     var logger = new winston.Logger({transports: transports,level:'silly', timestamp: function() {
-        return dateformat(Date.now(), "yyyy-mm-dd HH:MM:ss.l");
+        return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
     }});
     return logger;
 }
