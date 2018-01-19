@@ -1,1 +1,1 @@
-node index.js configDev
+node index.js

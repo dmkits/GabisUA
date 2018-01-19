@@ -204,6 +204,7 @@ function checkAndRegisterSysAdmin(msg, callback){
 }
 
 module.exports.sendMsgToChatId=function(chatId, msg, params={}){
+    logger.info("Msg is sending to chat id:"+chatId+". MSG: "+msg+".");
     bot.sendMessage(chatId,msg, params).catch((error)=>{
         logger.warn("Failed to send msg to user. Chat ID:"+ chatId+" Reason: ",error.response.body);
     });

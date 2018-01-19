@@ -298,6 +298,7 @@ module.exports.sendCashierMsgRecursively=function(index, cashierDataArr, schedul
             logger.error("FAILED to create msg for cashier. Reason: "+err);
             return;
         }
+
         if(resMsg) bot.sendMsgToChatId(TChatID, resMsg, {parse_mode:"HTML"});
         module.exports.sendCashierMsgRecursively(index+1,cashierDataArr,scheduleCall,callback);
     });
