@@ -4,9 +4,13 @@ var path=require('path');
 var DbConnectionError=null;
 var configName=null;
 var logger=require('./logger')();
+var index = require('./index');
 
-module.exports.getDbConnectionError= function(){
-    return DbConnectionError;
+
+module.exports.getDbConnectionError= function(callback){
+   setImmediate(function(){
+       callback(DbConnectionError);
+   });
 };
 
 module.exports.connectToDB=function(callback){
@@ -17,15 +21,25 @@ module.exports.connectToDB=function(callback){
         "password": appConfig.password,
         "server": appConfig.host,
         "database": appConfig.database
-    }, err =>{
+    }, function(err){
         if(err){
             callback(err);
             DbConnectionError=err;
             logger.error("FAILED to connect to DB. Reason: "+err);
             return;
         }
-        callback();
-        DbConnectionError=null;
+        var request = new mssql.Request();
+        request.query('select 1',
+            function(err,res) {
+                if (err) {
+                    DbConnectionError = err;
+                    callback(err);
+                    return;
+                }
+                DbConnectionError=null;
+                 callback();
+                index.executeWaitingFunctions();
+            });
     });
 };
 

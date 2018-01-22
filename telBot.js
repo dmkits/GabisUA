@@ -46,7 +46,7 @@ bot.on('message',(msg)=>{
                 module.exports.sendMsgToAdmins("Не удалось подключиться к БД! Причина:"+err);
                 return;
             }
-             module.exports.sendMsgToAdmins("Подключение к БД установлено успешно!", false);
+             module.exports.sendMsgToAdmins("Подключение к БД установлено успешно!");
         })
     }
     if(msg.contact && msg.contact.phone_number){
@@ -85,41 +85,44 @@ bot.on('message',(msg)=>{
     }
 });
 
-module.exports.sendMsgToAdmins=function(msg, reconBut=true){
-    try{
-        var admins = JSON.parse(fs.readFileSync(path.join(__dirname, './sysadmins.json')));
-    }catch(e){
-        logger.error("FAILED to get admin list. Reason: "+e);
-        return;
-    }
-    for(var j in admins){
-        var admin=admins[j];
-        for(var h in admin){
-        var adminChatId=admin[h];
-            if(adminChatId){
-                if(reconBut){
-                    logger.warn("DB connection failed. Sending msg to sysadmin. Chat ID: "+adminChatId);
-                    bot.sendMessage(adminChatId, msg,{parse_mode:"HTML"},
-                        {reply_markup: {
-                            keyboard: [
-                                [KB.dbConnection]
-                            ],
-                            one_time_keyboard: true
-                        }}).catch((error)=>{
+module.exports.sendMsgToAdmins=function(msg){
+    database.getDbConnectionError(function(dbConnectionError){
+        var reconBut=false;
+        if(dbConnectionError)reconBut=true;
+        try{
+            var admins = JSON.parse(fs.readFileSync(path.join(__dirname, './sysadmins.json')));
+        }catch(e){
+            logger.error("FAILED to get admin list. Reason: "+e);
+            return;
+        }
+        for(var j in admins){
+            var admin=admins[j];
+            for(var h in admin){
+                var adminChatId=admin[h];
+                if(adminChatId){
+                    if(reconBut){
+                        logger.warn("DB connection failed. Sending msg to sysadmin. Chat ID: "+adminChatId);
+                        bot.sendMessage(adminChatId, msg,
+                            {parse_mode:"HTML",
+                                reply_markup: {
+                                    keyboard: [
+                                        [KB.dbConnection]
+                                    ]}
+                            }).catch((error)=>{
+                                logger.warn("Failed to send msg to user. Chat ID:"+ adminChatId +" Reason: ",error.response.body);
+                            });
+                        continue;
+                    }
+                    logger.info("Sending msg to sysadmin. Chat ID: "+ adminChatId);
+                    bot.sendMessage(adminChatId, msg,
+                        {parse_mode:"HTML", reply_markup: {remove_keyboard: true}
+                        }).catch((error)=>{
                             logger.warn("Failed to send msg to user. Chat ID:"+ adminChatId +" Reason: ",error.response.body);
                         });
-                    continue;
                 }
-                logger.info("Sending msg to sysadmin by schedule. Chat ID: "+ adminChatId);
-                bot.sendMessage(adminChatId, msg,{parse_mode:"HTML"}
-                    ,{reply_markup: {
-                        remove_keyboard: true
-                    }}).catch((error)=>{
-                        logger.warn("Failed to send msg to user. Chat ID:"+ adminChatId +" Reason: ",error.response.body);
-                    });
             }
         }
-    }
+    });
 };
 
 function checkAndRegisterSysAdmin(msg, callback){
