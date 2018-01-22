@@ -67,10 +67,6 @@ module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){
                 return;
             }
             var employeeDataArr  =res.recordset;
-            //if(!employeeDataArr || employeeDataArr.length==0){
-            //    callback(null,employeeDataArr);
-            //    return;
-            //}
             request.input('TChatID', chatId);
             request.query('update r_Emps set TChatID=@TChatID where Mobile=@Mobile',
                 function(err, res){
