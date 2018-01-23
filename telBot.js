@@ -51,36 +51,36 @@ bot.on('message',(msg)=>{
     }
     if(msg.contact && msg.contact.phone_number){
         var phoneNumber=msg.contact.phone_number;
-        var dbConnectionError=database.getDbConnectionError();
-        if(dbConnectionError){
+        database.getDbConnectionError(function(dbConnectionError){
+            if(dbConnectionError){
+                checkAndRegisterSysAdmin(msg, function(sysAdminRegistered){
+                    if(!sysAdminRegistered){
+                        bot.sendMessage(msg.chat.id, "Не улалось зарегистрировать пользователя Telegram. Обратитесь к системному администратору.").catch((error)=>{
+                            logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: ",error.response.body);
+                        });
+                    }
+                });
+                return;
+            }
             checkAndRegisterSysAdmin(msg, function(sysAdminRegistered){
-                if(!sysAdminRegistered){
-                    bot.sendMessage(msg.chat.id, "Не улалось зарегистрировать пользователя Telegram. Обратитесь к системному администратору.").catch((error)=>{
-                        logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: ",error.response.body);
-                    });
-                }
+                database.checkPhoneAndWriteChatID(phoneNumber,msg.chat.id,
+                    function(err,employeeDataArr){
+                        if(err){
+                            logger.error("Failed to check phone number and write chat ID. Reason: "+err);
+                            bot.sendMessage(msg.chat.id, "Не улалось зарегистрировать служащего. Обратитесь к системному администратору.").catch((error)=>{
+                                logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: ",error.response.body);
+                            });
+                            return;
+                        }
+                        if((!employeeDataArr || employeeDataArr.length==0) && !sysAdminRegistered){
+                            logger.warn("Failed to register user. Phone number was not found in DB . Phone number: "+phoneNumber);
+                            bot.sendMessage(msg.chat.id, "Номер телефона не найден ни в одном из справочников сотрудников.").catch((error)=>{
+                                logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: ",error.response.body);
+                            });
+                        }
+                        sendMsgToAllUsersWithPhone(0,employeeDataArr,phoneNumber,msg.chat.id);
+                    })
             });
-            return;
-        }
-
-        checkAndRegisterSysAdmin(msg, function(sysAdminRegistered){
-            database.checkPhoneAndWriteChatID(phoneNumber,msg.chat.id,
-                function(err,employeeDataArr){
-                    if(err){
-                        logger.error("Failed to check phone number and write chat ID. Reason: "+err);
-                        bot.sendMessage(msg.chat.id, "Не улалось зарегистрировать служащего. Обратитесь к системному администратору.").catch((error)=>{
-                            logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: ",error.response.body);
-                        });
-                        return;
-                    }
-                    if((!employeeDataArr || employeeDataArr.length==0) && !sysAdminRegistered){
-                        logger.warn("Failed to register user. Phone number was not found in DB . Phone number: "+phoneNumber);
-                        bot.sendMessage(msg.chat.id, "Номер телефона не найден ни в одном из справочников сотрудников.").catch((error)=>{
-                            logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: ",error.response.body);
-                        });
-                    }
-                    sendMsgToAllUsersWithPhone(0,employeeDataArr,phoneNumber,msg.chat.id);
-                })
         });
     }
 });
