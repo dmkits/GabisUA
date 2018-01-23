@@ -5,23 +5,12 @@ var app = express();
 var cron = require('node-cron');
 var moment = require('moment');
 var logger=require('./logger')();
-
 var configFileNameParam=process.argv[2] || "config";
-var waitingFunctions={};
 var database = require('./database');
 
 database.setAppConfig(configFileNameParam);
 var bot=require('./telBot.js');
 var msgManager=require('./msgManager.js');
-
-module.exports.executeWaitingFunctions=function(){
-  var waitingFuncNames=Object.keys(waitingFunctions);
-  if(waitingFuncNames.length>0){
-      for (var f in waitingFuncNames){
-          waitingFunctions[waitingFuncNames[f]]();
-      }
-  }
-};
 
 connectToDBRecursively(0,"при старте приложения",function(){
     startSendingAdminMsgBySchedule();
@@ -106,13 +95,9 @@ function sendCashierMsgBySchedule(){
             logger.error("Failed to get cashier array. Reason: "+err);
             if(err.name=="ConnectionError")   {
                 connectToDBRecursively(0,"при попытке рассылки сообщений для кассиров",function(err){
-                    if(err){
-                        waitingFunctions.sendCashierMsgBySchedule=function(){
-                            sendCashierMsgBySchedule();
-                        };
-                        return;
+                    if(!err){
+                        sendCashierMsgBySchedule();
                     }
-                    sendCashierMsgBySchedule();
                 });
             }
             return;
@@ -132,13 +117,9 @@ function sendAdminMsgBySchedule(){
             logger.error("FAILED to get admins chat ID. Reason: "+err);
             if(err.name=='ConnectionError')   {
                 connectToDBRecursively(0, "при попытке рассылки сообщений для администраторов", function(err){
-                    if(err){
-                        waitingFunctions.sendAdminMsgBySchedule=function(){
-                            sendAdminMsgBySchedule();
-                        };
-                        return;
+                    if(!err){
+                        sendAdminMsgBySchedule();
                     }
-                    sendAdminMsgBySchedule();
                 });
             }
             return;

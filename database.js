@@ -4,8 +4,6 @@ var path=require('path');
 var DbConnectionError=null;
 var configName=null;
 var logger=require('./logger')();
-var index = require('./index');
-
 
 module.exports.getDbConnectionError= function(callback){
    setImmediate(function(){
@@ -38,7 +36,6 @@ module.exports.connectToDB=function(callback){
                 }
                 DbConnectionError=null;
                  callback();
-                index.executeWaitingFunctions();
             });
     });
 };
