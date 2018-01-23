@@ -23,7 +23,7 @@ function connectToDBRecursively(index, callingFuncMsg, callback){
         if(err && index<5){
             setTimeout(function(){
                 connectToDBRecursively(index+1,callingFuncMsg,callback);
-            },1000);
+            },5000);
         }else if(err && index==5){
             bot.sendMsgToAdmins("Не удалось подключиться к БД "+callingFuncMsg+ ". Причина:"+err);
             if(callback)callback(err);
