@@ -74,7 +74,7 @@ bot.on('message',(msg)=>{
                         }
                         if((!employeeDataArr || employeeDataArr.length==0) && !sysAdminRegistered){
                             logger.warn("Failed to register user. Phone number was not found in DB . Phone number: "+phoneNumber);
-                            bot.sendMessage(msg.chat.id, "Номер телефона не найден ни в одном из справочников сотрудников.").catch((error)=>{
+                            bot.sendMessage(msg.chat.id, "Номер телефона не найден в справочнике сотрудников.").catch((error)=>{
                                 logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: ",error.response.body);
                             });
                         }
