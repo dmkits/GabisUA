@@ -51,6 +51,7 @@ bot.on('message',(msg)=>{
     }
     if(msg.contact && msg.contact.phone_number){
         var phoneNumber=msg.contact.phone_number;
+        if(phoneNumber[0]=="+")phoneNumber=phoneNumber.substring(1);
         database.getDbConnectionError(function(dbConnectionError){
             if(dbConnectionError){
                 checkAndRegisterSysAdmin(msg, function(sysAdminRegistered){
