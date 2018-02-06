@@ -340,7 +340,7 @@ module.exports.sendAppStartMsgToSysadmins=function(appConfig, callback){        
     msgStr=msgStr+"<b>\ndbPort:</b>"+appConfig["dbPort"];
     msgStr=msgStr+"<b>\ndatabase:</b>"+appConfig["database"];
     msgStr=msgStr+"<b>\ndbUser:</b>"+appConfig["dbUser"];
-    msgStr=msgStr+"<b>\ndbUser:</b>"+appConfig["appPort"];
+    msgStr=msgStr+"<b>\nappPort:</b>"+appConfig["appPort"];
     if(appConfig["sysadminsMsgConfig"]) {
         msgStr=msgStr+"<b>\nsysadminsMsgConfig:</b>"+JSON.stringify(appConfig["sysadminsMsgConfig"]);
     }else msgStr=msgStr+"\n<b>sysadminsMsgConfig</b> NOT SPECIFIED";
