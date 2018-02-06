@@ -11,47 +11,15 @@ var database = require('./database');
 database.setAppConfig(configFileNameParam);
 var bot=require('./telBot.js');
 var msgManager=require('./msgManager.js');
-
 var appConfig=database.getAppConfig();
-var sysAdminSchedule=appConfig.sysadminsSchedule;
-if(!sysAdminSchedule) sysAdminSchedule='*/15 * * * * *';                                                logger.info("sysAdminSchedule=",sysAdminSchedule);
-if(cron.validate(sysAdminSchedule)==false) {
-    logger.error("invalid sysAdminSchedule cron format "+ sysAdminSchedule);
-    return;
-}
-var sysadminsMsgConfig = appConfig.sysadminsMsgConfig;
-if(!sysadminsMsgConfig) {
-    logger.error("No sysadminsMsgConfig in config file!");
-    return;
-}
-var adminSchedule=appConfig.adminSchedule;
-if(!adminSchedule) adminSchedule='0 */2 * * * *';                                                       logger.info("adminSchedule=",adminSchedule);
-if(cron.validate(adminSchedule)==false){
-    logger.error("invalid adminSchedule cron format "+adminSchedule);
-    return;
-}
-var cashierSchedule=appConfig.cashierSchedule;                                                          logger.info("cashierSchedule=",cashierSchedule);
-if(!cashierSchedule) cashierSchedule='*/15 * * * * *';
-if(cron.validate(cashierSchedule)==false){
-    logger.error("invalide cashierSchedule cron format "+cashierSchedule);
-    return;
-}
-var dailySalesRetSchedule=appConfig.dailySalesRetSchedule;                                              logger.info("dailySalesRetSchedule=",dailySalesRetSchedule);
-if(!dailySalesRetSchedule) dailySalesRetSchedule='*/15 * * * * *';
-if(cron.validate(dailySalesRetSchedule)==false){
-    logger.error("invalide dailySalesRetSchedule cron format "+dalySalesRetSchedule);
-    return;
-}
-var dailySalesRetUsers=appConfig.dailySalesRetUsers;
-
-
-connectToDBRecursively(0,"при старте приложения",function(){
+var appPort=appConfig["appPort"]||80;
+msgManager.sendAppStartMsgToSysadmins(appConfig, function(err){
+    if(err) return;
     startSendingAdminMsgBySchedule();
     startSendingSysAdminMsgBySchedule();
     startSendingCashierMsgBySchedule();
     startSendingSalesAndReturnsMsgBySchedule();
 });
-
 function connectToDBRecursively(index, callingFuncMsg, callback){
     database.connectToDB(function(err){
         if(err && index<5){
@@ -65,7 +33,10 @@ function connectToDBRecursively(index, callingFuncMsg, callback){
     });
 }
 function startSendingSysAdminMsgBySchedule(){                                                          logger.info("startSendingSysAdminMsgBySchedule");
-   var scheduleSysAdminMsg =cron.schedule(sysAdminSchedule,
+    var sysAdminSchedule=appConfig.sysadminsSchedule;
+    var sysadminsMsgConfig = appConfig.sysadminsMsgConfig;
+    if(!sysAdminSchedule||cron.validate(sysAdminSchedule)==false||!sysadminsMsgConfig )return;
+    var scheduleSysAdminMsg =cron.schedule(sysAdminSchedule,
         function(){
             msgManager.makeDiskUsageMsg(sysadminsMsgConfig, function(err, adminMsg){
                 if(err){
@@ -78,6 +49,8 @@ function startSendingSysAdminMsgBySchedule(){                                   
     scheduleSysAdminMsg.start();
 }
 function startSendingAdminMsgBySchedule(){                                                              logger.info("startSendingAdminMsgBySchedule");
+    var adminSchedule=appConfig.adminSchedule;
+    if(!adminSchedule||cron.validate(adminSchedule)==false) return;
      var scheduleAdminMsg =cron.schedule(adminSchedule,
          function(){
              sendAdminMsgBySchedule();
@@ -85,6 +58,8 @@ function startSendingAdminMsgBySchedule(){                                      
     scheduleAdminMsg.start();
 }
 function startSendingCashierMsgBySchedule(){                                                                logger.info("startSendingCashierMsgBySchedule");
+    var cashierSchedule=appConfig.cashierSchedule;
+    if(!cashierSchedule||cron.validate(cashierSchedule)==false) return;
     var scheduleCashierMsg =cron.schedule(cashierSchedule,
         function(){
             sendCashierMsgBySchedule();
@@ -92,6 +67,8 @@ function startSendingCashierMsgBySchedule(){                                    
     scheduleCashierMsg.start();
 }
 function startSendingSalesAndReturnsMsgBySchedule(){                                                           logger.info("startSendingSalesAndReturnsMsgBySchedule");
+    var dailySalesRetSchedule=appConfig.dailySalesRetSchedule;
+    if(!dailySalesRetSchedule||cron.validate(dailySalesRetSchedule)==false) return;
     var scheduleSalesAndReturnsMsg =cron.schedule(dailySalesRetSchedule,
         function(){
             sendSalesAndReturnsMsg();
@@ -146,10 +123,22 @@ function sendAdminMsgBySchedule(){
     });
 }
 function sendSalesAndReturnsMsg(){
-    if(!dailySalesRetUsers) return;
+    var dailySalesRetUsers=appConfig.dailySalesRetUsers;
+    if(!dailySalesRetUsers || dailySalesRetUsers.length==0) return;
     database.getdailySalesRetUsersByPhone(dailySalesRetUsers, function(err,res){
+        if(err) {
+            logger.error("FAILED to get user chat ID for daily sales and returns msg. Reason: " + err);
+            if (err.name == 'ConnectionError') {
+                connectToDBRecursively(0, "при попытке рассылки сообщений о суммах продаж и возвратов ", function (err) {
+                    if (!err) {
+                        sendSalesAndReturnsMsg();
+                    }
+                });
+            }
+            return;
+        }
         var adminChatArr=res;
-        if(adminChatArr.length==0)return;
+        if(!adminChatArr || adminChatArr.length==0)return;
         msgManager.makeSalesAndReturnsMsg(function(err,adminMsg){
             if(err) {
                 logger.error("Failed to make sales and returns msg. Reason: "+err.message?err.message:err);
@@ -162,7 +151,7 @@ function sendSalesAndReturnsMsg(){
         });
     });
 }
-app.listen(8182);
+app.listen(appPort);
 
 
 

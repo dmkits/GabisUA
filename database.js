@@ -15,9 +15,9 @@ module.exports.connectToDB=function(callback){
     var appConfig=this.getAppConfig();
     mssql.close();
     mssql.connect({
-        "user": appConfig.user,
-        "password": appConfig.password,
-        "server": appConfig.host,
+        "user": appConfig.dbUser,
+        "password": appConfig.dbPassword,
+        "server": appConfig.dbHost,
         "database": appConfig.database
     }, function(err){
         if(err){
@@ -233,10 +233,33 @@ module.exports.getSalesAndRetSum=function(callback){
         "\t) r on r.StockID=st.StockID\n" +
         "where NOT (s.StockID is NULL and r.StockID is NULL);\n";
     request.query(queryStr,
-        function(err,res){   console.log("res 236=",res);
+        function(err,res){
             if(err){
                 if(err){
                     logger.error("FAILED to get sales and returns sums. Reason: "+err);
+                    callback(err);
+                    return;
+                }
+            }
+            callback(null,res.recordset);
+        });
+};
+module.exports.getdailySalesRetUsersByPhone=function(phoneNumArr, callback){
+    var phoneStr="(";
+    for(var i in phoneNumArr){
+        phoneStr=phoneStr+phoneNumArr;
+        if(i<phoneNumArr-1){
+            phoneStr=phoneStr+",";
+        }
+    }
+    phoneStr=phoneStr+")";
+    var request = new mssql.Request();
+    var queryStr="select TChatID from r_Emps where ShiftPostID=1 AND Mobile in " + phoneStr;
+    request.query(queryStr,
+        function(err,res){
+            if(err){
+                if(err){
+                    logger.error("FAILED to get users chatID for daily sales and returns messages. Reason: "+err);
                     callback(err);
                     return;
                 }

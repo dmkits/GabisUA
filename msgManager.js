@@ -5,6 +5,7 @@ var path = require('path');
 var moment = require('moment');
 var bot=require('./telBot.js');
 var logger=require('./logger')();
+var cron = require('node-cron');
 
 module.exports.makeDiskUsageMsg=function(sysadminsMsgConfig, callback){
     var adminMsg='<b>Информация системному администратору на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> \n';
@@ -333,3 +334,48 @@ module.exports.makeSalesAndReturnsMsg =function(callback){
        }
    })
 };
+module.exports.sendAppStartMsgToSysadmins=function(appConfig, callback){                                     logger.info("sendAppStartMsgToSysadmins");
+    var msgStr="<b>Telegram bot started.</b>";
+    msgStr=msgStr+"<b>\ndbHost:</b>"+appConfig["dbHost"];
+    msgStr=msgStr+"<b>\ndbPort:</b>"+appConfig["dbPort"];
+    msgStr=msgStr+"<b>\ndatabase:</b>"+appConfig["database"];
+    msgStr=msgStr+"<b>\ndbUser:</b>"+appConfig["dbUser"];
+    msgStr=msgStr+"<b>\ndbUser:</b>"+appConfig["appPort"];
+    if(appConfig["sysadminsMsgConfig"]) {
+        msgStr=msgStr+"<b>\nsysadminsMsgConfig:</b>"+JSON.stringify(appConfig["sysadminsMsgConfig"]);
+    }else msgStr=msgStr+"\n<b>sysadminsMsgConfig</b> NOT SPECIFIED";
+    if(appConfig["sysadminsSchedule"]){                                                                      logger.info("sysadminsSchedule=",appConfig["sysadminsSchedule"]);
+        msgStr=msgStr+"<b>\nsysadminsSchedule:</b>"+appConfig["sysadminsSchedule"];
+        if(cron.validate(appConfig["sysadminsSchedule"])==false){                                            logger.error("sysadminsSchedule NOT VALID");
+            msgStr=msgStr+" - NOT VALID";
+        }else msgStr=msgStr+" - valid";
+    } else msgStr=msgStr+"<b>\nsysadminsSchedule</b> NOT SPECIFIED";
+    if(appConfig["adminSchedule"]){                                                                          logger.info("adminSchedule=",appConfig["adminSchedule"]);
+        msgStr=msgStr+"<b>\nadminSchedule:</b>"+appConfig["adminSchedule"];
+        if(cron.validate(appConfig["adminSchedule"])==false){                                                logger.error("adminSchedule NOT VALID");
+            msgStr=msgStr+" - NOT VALID";
+        }else msgStr=msgStr+" - valid";
+    } else msgStr=msgStr+"<b>\nadminSchedule</b> NOT SPECIFIED";
+    if(appConfig["dailySalesRetSchedule"]){                                                                  logger.info("dailySalesRetSchedule=",appConfig["dailySalesRetSchedule"]);
+        msgStr=msgStr+"<b>\ndailySalesRetSchedule:</b>"+appConfig["dailySalesRetSchedule"];
+        if(cron.validate(appConfig["dailySalesRetSchedule"])==false){                                        logger.error("dailySalesRetSchedule NOT VALID");
+            msgStr=msgStr+" - NOT VALID";
+        }else msgStr=msgStr+" - valid";
+    } else msgStr=msgStr+"<b>\ndailySalesRetSchedule</b> NOT SPECIFIED";
+    if(appConfig["cashierSchedule"]){                                                                        logger.info("cashierSchedule=",appConfig["cashierSchedule"]);
+        msgStr=msgStr+"<b>\ncashierSchedule:</b>"+appConfig["cashierSchedule"];
+        if(cron.validate(appConfig["cashierSchedule"])==false){                                              logger.error("cashierSchedule NOT VALID");
+            msgStr=msgStr+" - NOT VALID";
+        }else msgStr=msgStr+" - valid";
+    } else msgStr=msgStr+"<b>\ncashierSchedule</b> NOT SPECIFIED";
+    database.connectToDB(function(err){
+        if (err){
+            bot.sendMsgToAdmins(msgStr+"\n Failed to connect to database! Reason:"+err);
+            callback(err);
+            return;
+        }
+        bot.sendMsgToAdmins(msgStr + "\n Connected to database successfully!");
+        callback();
+    });
+};
+
