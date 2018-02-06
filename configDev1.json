@@ -8,6 +8,7 @@
   "sysadmins":["380675612300","380637868770"],
   "sysadminsSchedule":"*/30 * * * * *",
   "adminSchedule":"*/15 * * * * *",
+  "dailySalesRetSchedule":"*/15 * * * * *",
   "cashierSchedule":"*/20 * * * * *",
   "sysadminsMsgConfig":{
     "system":"/","backup":"/home/ianagez/IdeaProjects/GarbisTelBot/backup/",

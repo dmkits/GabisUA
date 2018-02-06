@@ -215,3 +215,32 @@ module.exports.setSEstMsgCount=function(ChID,callback){
         });
 };
 
+module.exports.getSalesAndRetSum=function(callback){
+    var request = new mssql.Request();
+    var queryStr="select st.StockName, ISNULL(s.SaleSum,0) as SaleSum, ISNULL(r.RetSum,0) as RetSum\n" +
+        "from r_Stocks st\n" +
+        "left join (\n" +
+        "\tselect s.StockID, SUM(sp.SumCC_wt) as SaleSum \n" +
+        "\tfrom t_Sale s,t_SalePays sp \n" +
+        "\twhere sp.ChID=s.ChID and s.DocDate=dbo.zf_GetDate(GETDATE()) \n" +
+        "\tgroup by s.StockID\n" +
+        "\t) s on s.StockID=st.StockID\n" +
+        "left join (\n" +
+        "\tselect r.StockID, SUM(rp.SumCC_wt) as RetSum \n" +
+        "\tfrom t_CRRet r,t_CRRetPays rp \n" +
+        "\twhere rp.ChID=r.ChID and r.DocDate=dbo.zf_GetDate(GETDATE()) \n" +
+        "\tgroup by r.StockID\n" +
+        "\t) r on r.StockID=st.StockID\n" +
+        "where NOT (s.StockID is NULL and r.StockID is NULL);\n";
+    request.query(queryStr,
+        function(err,res){   console.log("res 236=",res);
+            if(err){
+                if(err){
+                    logger.error("FAILED to get sales and returns sums. Reason: "+err);
+                    callback(err);
+                    return;
+                }
+            }
+            callback(null,res.recordset);
+        });
+};

@@ -13,9 +13,10 @@ var bot=require('./telBot.js');
 var msgManager=require('./msgManager.js');
 
 connectToDBRecursively(0,"при старте приложения",function(){
-    startSendingAdminMsgBySchedule();
-    startSendingSysAdminMsgBySchedule();
-    startSendingCashierMsgBySchedule();
+    // startSendingAdminMsgBySchedule();
+    // startSendingSysAdminMsgBySchedule();
+    // startSendingCashierMsgBySchedule();
+    startSendingSalesAndReturnsMsgBySchedule();
 });
 
 function connectToDBRecursively(index, callingFuncMsg, callback){
@@ -78,7 +79,7 @@ function startSendingCashierMsgBySchedule(){                                    
     var cashierSchedule=serverConfig.cashierSchedule;                                                       logger.info("cashierSchedule=",cashierSchedule);
     if(!cashierSchedule) cashierSchedule='*/15 * * * * *';
     var valid = cron.validate(cashierSchedule);
-    if(valid==false){                                                                                       logger.error("invalide cashierSchedule cron format "+adminSchedule);
+    if(valid==false){                                                                                       logger.error("invalide cashierSchedule cron format "+cashierSchedule);
         return;
     }
     if(scheduleCashierMsg)scheduleCashierMsg.destroy();
@@ -89,6 +90,22 @@ function startSendingCashierMsgBySchedule(){                                    
     scheduleCashierMsg.start();
 }
 
+var scheduleSalesAndReturnsMsg;
+function startSendingSalesAndReturnsMsgBySchedule(){                                                           logger.info("startSendingSalesAndReturnsMsgBySchedule");
+    var serverConfig=database.getAppConfig();
+    var dailySalesRetSchedule=serverConfig.dailySalesRetSchedule;                                                logger.info("dailySalesRetSchedule=",dailySalesRetSchedule);
+    if(!dailySalesRetSchedule) dailySalesRetSchedule='*/15 * * * * *';
+    var valid = cron.validate(dailySalesRetSchedule);
+    if(valid==false){                                                                                          logger.error("invalide dailySalesRetSchedule cron format "+dalySalesRetSchedule);
+        return;
+    }
+    if(scheduleSalesAndReturnsMsg)scheduleSalesAndReturnsMsg.destroy();
+    scheduleSalesAndReturnsMsg =cron.schedule(dailySalesRetSchedule,
+        function(){
+            sendSalesAndReturnsMsg();
+        });
+    scheduleSalesAndReturnsMsg.start();
+};
 function sendCashierMsgBySchedule(){
     database.getCashierDataArr(null,function(err, res){
         if(err){
@@ -128,6 +145,33 @@ function sendAdminMsgBySchedule(){
         msgManager.makeUnconfirmedDocsMsg(function(err,adminMsg){
             if(err) {
                 logger.error("Failed to make unconfirmed docs msg. Reasopn: "+err);
+                return;
+            }
+            for(var j in adminChatArr){
+                logger.info("Unconfirmed docs msg is sending to admin by schedule. Chat ID: "+adminChatArr[j].TChatID);
+                bot.sendMsgToChatId(adminChatArr[j].TChatID, adminMsg, {parse_mode:"HTML"});
+            }
+        });
+    });
+}
+
+function sendSalesAndReturnsMsg(){    console.log("sendSalesAndReturnsMsg");
+    database.getAdminChatIds(function(err, res){
+        if(err){
+            logger.error("FAILED to get admins chat ID. Reason: "+err);
+            if(err.name=='ConnectionError')   {
+                connectToDBRecursively(0, "при попытке рассылки сообщений о суммах продаж и возвратов для администраторов", function(err){
+                    if(!err){
+                        sendSalesAndReturnsMsg();
+                    }
+                });
+            }
+            return;
+        }
+        var adminChatArr=res;
+        msgManager.makeSalesAndReturnsMsg(function(err,adminMsg){
+            if(err) {
+                logger.error("Failed to make sales and returns msg. Reason: "+err.message?err.message:err);
                 return;
             }
             for(var j in adminChatArr){

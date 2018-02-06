@@ -313,3 +313,23 @@ function insertSEstMsgCountRecursively(index,chIDArr,callback){
         insertSEstMsgCountRecursively (index+1,chIDArr,callback);
     });
 }
+module.exports.makeSalesAndReturnsMsg =function(callback){
+    var adminMsg='<b>Информация о суммах движения товара на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> \n';
+   database.getSalesAndRetSum(function(err, res){
+       if(err) {
+           callback(err);
+           return;
+       }
+       var sumData=res;
+       if(sumData.length==0) {
+           adminMsg+="\n<b>Нет данных.</b>";
+           callback(null,adminMsg);
+       }else{
+           for (var i in sumData){
+               var dataItem=sumData[i];
+               adminMsg+="\n <b> "+dataItem.StockName+"</b>:   +"+dataItem.SaleSum +",   -"+dataItem.RetSum;
+           }
+           callback(null,adminMsg);
+       }
+   })
+};

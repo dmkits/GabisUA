@@ -4,10 +4,12 @@
   "database":"GMSSample38btkKlnk",
   "user":"sa",
   "password":"GMSgms123",
-  "botToken":"491349310:AAG0qRPlpmJucU0hRZXzzwhlgo5yjt-zOjQ",
+  "botToken":"525453016:AAGDfQLPR5fOeU02_6VsQEyPdkQHnJJa6Qk",
   "sysadmins":["380675612300","380637868770"],
   "sysadminsSchedule":"0 */1 * * * *",
   "adminSchedule":"0 */1 * * * *",
+  "dailySalesRetSchedule":"*/15 * * * * *",
+  "dailySalesRetUsers":["380675612300","380637868770"],
   "cashierSchedule":"",
   "sysadminsMsgConfig":{
     "system":"C:","backup":"C:/GMSServer/BackUp/",

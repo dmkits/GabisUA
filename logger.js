@@ -2,6 +2,9 @@ var winston = require('winston');
 var fs=require('fs');
 var path=require('path');
 var moment = require('moment');
+var devMode;
+if(!process.argv[2])devMode=false;
+else devMode=process.argv[2].toLowerCase().indexOf('dev')>=0;
 
 function makeLogger(){
     var logDir= path.join(__dirname, './logs/');
@@ -19,10 +22,11 @@ function makeLogger(){
             return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
         }
     }));
-    transports.push(new (winston.transports.Console)({timestamp:function() {
-        return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
-    }}));
-
+    if(devMode){
+        transports.push(new (winston.transports.Console)({timestamp:function() {
+                return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
+            }}));
+    }
     var logger = new winston.Logger({transports: transports,level:'silly', timestamp: function() {
         return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
     }});
