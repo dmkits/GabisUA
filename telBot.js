@@ -3,11 +3,12 @@ var TelegramBot = require('node-telegram-bot-api');
 var fs=require('fs');
 var path = require('path');
 var database=require('./database');
-var TOKEN=database.getAppConfig()['botToken'];
 var logger=require('./logger')();
+var configObj=database.getAppConfig();
+var TOKEN=configObj['botToken'];
 var bot = new TelegramBot(TOKEN, {polling: true});
 var msgManager=require('./msgManager');
-
+var sysAdminTelArr=configObj["sysadmins"];
 Promise.config({
     cancellation: true
 });
@@ -162,12 +163,7 @@ function checkAndRegisterSysAdmin(msg, callback){
                 return;
             }
     }
-
-    var configObj=database.getAppConfig();
-    if(!configObj || !configObj["sysadmins"]) {
-        return;
-    }
-    var sysAdminTelArr=configObj["sysadmins"];
+    if(! sysAdminTelArr ||sysAdminTelArr.length==0) return;
     for(var i=0; i<sysAdminTelArr.length; i++){
         var adminTelNum = sysAdminTelArr[i];
         if(adminTelNum==phoneNumber){

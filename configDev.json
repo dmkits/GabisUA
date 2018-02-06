@@ -9,6 +9,7 @@
   "sysadminsSchedule":"0 */30 18-22/1 * * *",
   "adminSchedule":"0 */20 18-22/1 * * *",
   "dailySalesRetSchedule":"*/15 * * * * *",
+  "dailySalesRetUsers":["380675612300","380637868770"],
   "cashierSchedule":"0 */15 18-22/1 * * *",
   "sysadminsMsgConfig":{
     "system":"C:","backup":"C:/GMSServer/BackUp/",

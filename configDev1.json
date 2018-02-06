@@ -6,12 +6,13 @@
   "password":"GMSgms123",
   "botToken":"525453016:AAGDfQLPR5fOeU02_6VsQEyPdkQHnJJa6Qk",
   "sysadmins":["380675612300","380637868770"],
-  "sysadminsSchedule":"*/30 * * * * *",
+  "sysadminsSchedule":"*/14 * * * * *",
   "adminSchedule":"*/15 * * * * *",
   "dailySalesRetSchedule":"*/15 * * * * *",
+  "dailySalesRetUsers":["380675612300","380637868770"],
   "cashierSchedule":"*/20 * * * * *",
   "sysadminsMsgConfig":{
-    "system":"/","backup":"/home/ianagez/IdeaProjects/GarbisTelBot/backup/",
+    "system":"/","backup":"/home/ianagez/IdeaProjects/GabisUA/backup/",
     "dbBackupFileName":"GMSData38_*.rar"
   }
 }
