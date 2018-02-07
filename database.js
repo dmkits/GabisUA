@@ -245,16 +245,13 @@ module.exports.getSalesAndRetSum=function(callback){
         });
 };
 module.exports.getdailySalesRetUsersByPhone=function(phoneNumArr, callback){
-    var phoneStr="(";
+    var phoneStr;
     for(var i in phoneNumArr){
-        phoneStr=phoneStr+"'"+phoneNumArr[i]+"'";
-        if(i<phoneNumArr.length){
-            phoneStr=phoneStr+",";
-        }
+        if(phoneStr)phoneStr+=","; else phoneStr="";
+        phoneStr+="'"+phoneNumArr[i]+"'";
     }
-    phoneStr=phoneStr+")";
     var request = new mssql.Request();
-    var queryStr="select TChatID from r_Emps where ShiftPostID=1 AND Mobile in " + phoneStr;    console.log("queryStr=",queryStr);
+    var queryStr="select TChatID from r_Emps where ShiftPostID=1 AND Mobile in (" + phoneStr + ") AND TChatID is Not NULL";    console.log("queryStr=",queryStr);
     request.query(queryStr,
         function(err,res){
             if(err){
