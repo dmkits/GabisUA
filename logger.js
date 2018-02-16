@@ -6,7 +6,11 @@ var devMode;
 if(!process.argv[2])devMode=false;
 else devMode=process.argv[2].toLowerCase().indexOf('dev')>=0;
 
-function makeLogger(){
+
+
+var logger=null;
+console.log("logger load logger=",logger);
+function makeLogger(){                                                            console.log("makeLogger");
     var logDir= path.join(__dirname, './logs/');
     try {
         if (!fs.existsSync(logDir))fs.mkdirSync(logDir);
@@ -27,11 +31,12 @@ function makeLogger(){
                 return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
             }}));
     }
-    var logger = new winston.Logger({transports: transports,level:'silly', timestamp: function() {
+    logger = new winston.Logger({transports: transports,level:'silly', timestamp: function() {
         return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
     }});
     return logger;
 }
 module.exports=function(){
-  return makeLogger();
+    if(!logger) makeLogger();
+    else  return logger;
 };

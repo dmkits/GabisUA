@@ -1,24 +1,22 @@
 var express = require('express');
-var fs = require('fs');
-var path = require('path');
 var app = express();
 var cron = require('node-cron');
-var moment = require('moment');
-var logger=require('./logger')();
 var configFileNameParam=process.argv[2] || "config";
 var database = require('./database');
-
 database.setAppConfig(configFileNameParam);
 var bot=require('./telBot.js');
+var telBotSysadmins=require('./telBotSysadmins');
 var msgManager=require('./msgManager.js');
 var appConfig=database.getAppConfig();
 var appPort=appConfig["appPort"]||80;
-msgManager.sendAppStartMsgToSysadmins(appConfig, function(err){
+var logger=require('./logger.js')();
+
+telBotSysadmins.sendAppStartMsgToSysadmins(appConfig, function(err){
     if(err) return;
-    startSendingAdminMsgBySchedule();
-    startSendingSysAdminMsgBySchedule();
-    startSendingCashierMsgBySchedule();
-    startSendingSalesAndReturnsMsgBySchedule();
+   // startSendingAdminMsgBySchedule();
+    telBotSysadmins.startSendingSysAdminMsgBySchedule(appConfig);
+    //startSendingCashierMsgBySchedule();
+    //startSendingSalesAndReturnsMsgBySchedule();
 });
 function connectToDBRecursively(index, callingFuncMsg, callback){
     database.connectToDB(function(err){
@@ -27,27 +25,27 @@ function connectToDBRecursively(index, callingFuncMsg, callback){
                 connectToDBRecursively(index+1,callingFuncMsg,callback);
             },5000);
         }else if(err && index==5){
-            bot.sendMsgToAdmins("Не удалось подключиться к БД "+callingFuncMsg+ ". Причина:"+err);
+            telBotSysadmins.sendMsgToSysadmins("Не удалось подключиться к БД "+callingFuncMsg+ ". Причина:"+err);
             if(callback)callback(err);
         }else if(callback) callback();
     });
 }
-function startSendingSysAdminMsgBySchedule(){                                                          logger.info("startSendingSysAdminMsgBySchedule");
-    var sysAdminSchedule=appConfig.sysadminsSchedule;
-    var sysadminsMsgConfig = appConfig.sysadminsMsgConfig;
-    if(!sysAdminSchedule||cron.validate(sysAdminSchedule)==false||!sysadminsMsgConfig )return;
-    var scheduleSysAdminMsg =cron.schedule(sysAdminSchedule,
-        function(){
-            msgManager.makeDiskUsageMsg(sysadminsMsgConfig, function(err, adminMsg){
-                if(err){
-                    logger.error("FAILED to make disk usage msg. Reason: "+err);
-                    return;
-                }
-                bot.sendMsgToAdmins(adminMsg);
-            });
-    });
-    scheduleSysAdminMsg.start();
-}
+// function startSendingSysAdminMsgBySchedule(){                                                          logger.info("startSendingSysAdminMsgBySchedule");
+//     var sysAdminSchedule=appConfig.sysadminsSchedule;
+//     var sysadminsMsgConfig = appConfig.sysadminsMsgConfig;
+//     if(!sysAdminSchedule||cron.validate(sysAdminSchedule)==false||!sysadminsMsgConfig )return;
+//     var scheduleSysAdminMsg =cron.schedule(sysAdminSchedule,
+//         function(){
+//             msgManager.makeDiskUsageMsg(sysadminsMsgConfig, function(err, adminMsg){
+//                 if(err){
+//                     logger.error("FAILED to make disk usage msg. Reason: "+err);
+//                     return;
+//                 }
+//                 bot.sendMsgToSysadmins(adminMsg);
+//             });
+//     });
+//     scheduleSysAdminMsg.start();
+// }
 function startSendingAdminMsgBySchedule(){                                                              logger.info("startSendingAdminMsgBySchedule");
     var adminSchedule=appConfig.adminSchedule;
     if(!adminSchedule||cron.validate(adminSchedule)==false) return;
