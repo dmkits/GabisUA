@@ -4,6 +4,7 @@ var path=require('path');
 var DbConnectionError=null;
 var configName=null;
 var logger=require('./logger')();
+var telBotSysadmins = require('./telBotSysadmins')();
 
 module.exports.getDbConnectionError= function(callback){
    setImmediate(function(){
@@ -11,7 +12,7 @@ module.exports.getDbConnectionError= function(callback){
    });
 };
 
-module.exports.connectToDB=function(callback){
+function connectToDB(callback){
     var appConfig=this.getAppConfig();
     mssql.close();
     mssql.connect({
@@ -39,7 +40,7 @@ module.exports.connectToDB=function(callback){
             });
     });
 };
-
+module.exports.connectToDB=connectToDB;
 module.exports.setAppConfig=function(configFileName){
     configName = configFileName;
 };
@@ -53,6 +54,22 @@ module.exports.getAppConfig=function(){
     }
    return appConfig;
 };
+
+
+function connectToDBRecursively(index, callingFuncMsg, callback){
+    connectToDB(function(err){
+        if(err && index<5){
+            setTimeout(function(){
+                connectToDBRecursively(index+1,callingFuncMsg,callback);
+            },5000);
+        }else if(err && index==5){
+            telBotSysadmins.sendMsgToSysadmins("Не удалось подключиться к БД "+callingFuncMsg+ ". Причина:"+err);
+            if(callback)callback(err);
+        }else if(callback) callback();
+    });
+}
+module.exports.connectToDBRecursively=connectToDBRecursively;
+
 
 module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){
     var request = new mssql.Request();

@@ -6,6 +6,7 @@ var database = require('./database');
 database.setAppConfig(configFileNameParam);
 var bot=require('./telBot.js');
 var telBotSysadmins=require('./telBotSysadmins');
+var telBotAdmins=require('./telBotAdmins');
 var msgManager=require('./msgManager.js');
 var appConfig=database.getAppConfig();
 var appPort=appConfig["appPort"]||80;
@@ -13,48 +14,24 @@ var logger=require('./logger.js')();
 
 telBotSysadmins.sendAppStartMsgToSysadmins(appConfig, function(err){
     if(err) return;
-   // startSendingAdminMsgBySchedule();
+    startSendingAdminMsgBySchedule();
     telBotSysadmins.startSendingSysAdminMsgBySchedule(appConfig);
     //startSendingCashierMsgBySchedule();
     //startSendingSalesAndReturnsMsgBySchedule();
 });
-function connectToDBRecursively(index, callingFuncMsg, callback){
-    database.connectToDB(function(err){
-        if(err && index<5){
-            setTimeout(function(){
-                connectToDBRecursively(index+1,callingFuncMsg,callback);
-            },5000);
-        }else if(err && index==5){
-            telBotSysadmins.sendMsgToSysadmins("Не удалось подключиться к БД "+callingFuncMsg+ ". Причина:"+err);
-            if(callback)callback(err);
-        }else if(callback) callback();
-    });
-}
-// function startSendingSysAdminMsgBySchedule(){                                                          logger.info("startSendingSysAdminMsgBySchedule");
-//     var sysAdminSchedule=appConfig.sysadminsSchedule;
-//     var sysadminsMsgConfig = appConfig.sysadminsMsgConfig;
-//     if(!sysAdminSchedule||cron.validate(sysAdminSchedule)==false||!sysadminsMsgConfig )return;
-//     var scheduleSysAdminMsg =cron.schedule(sysAdminSchedule,
-//         function(){
-//             msgManager.makeDiskUsageMsg(sysadminsMsgConfig, function(err, adminMsg){
-//                 if(err){
-//                     logger.error("FAILED to make disk usage msg. Reason: "+err);
-//                     return;
-//                 }
-//                 bot.sendMsgToSysadmins(adminMsg);
-//             });
+// function connectToDBRecursively(index, callingFuncMsg, callback){
+//     database.connectToDB(function(err){
+//         if(err && index<5){
+//             setTimeout(function(){
+//                 connectToDBRecursively(index+1,callingFuncMsg,callback);
+//             },5000);
+//         }else if(err && index==5){
+//             telBotSysadmins.sendMsgToSysadmins("Не удалось подключиться к БД "+callingFuncMsg+ ". Причина:"+err);
+//             if(callback)callback(err);
+//         }else if(callback) callback();
 //     });
-//     scheduleSysAdminMsg.start();
 // }
-function startSendingAdminMsgBySchedule(){                                                              logger.info("startSendingAdminMsgBySchedule");
-    var adminSchedule=appConfig.adminSchedule;
-    if(!adminSchedule||cron.validate(adminSchedule)==false) return;
-     var scheduleAdminMsg =cron.schedule(adminSchedule,
-         function(){
-             sendAdminMsgBySchedule();
-    });
-    scheduleAdminMsg.start();
-}
+
 function startSendingCashierMsgBySchedule(){                                                                logger.info("startSendingCashierMsgBySchedule");
     var cashierSchedule=appConfig.cashierSchedule;
     if(!cashierSchedule||cron.validate(cashierSchedule)==false) return;
@@ -94,32 +71,7 @@ function sendCashierMsgBySchedule(){
         msgManager.sendCashierMsgRecursively(0,cashierDataArr, true);
     });
 }
-function sendAdminMsgBySchedule(){
-    database.getAdminChatIds(function(err, res){
-        if(err){
-            logger.error("FAILED to get admins chat ID. Reason: "+err);
-            if(err.name=='ConnectionError')   {
-                connectToDBRecursively(0, "при попытке рассылки сообщений для администраторов", function(err){
-                    if(!err){
-                        sendAdminMsgBySchedule();
-                    }
-                });
-            }
-            return;
-        }
-        var adminChatArr=res;
-        msgManager.makeUnconfirmedDocsMsg(function(err,adminMsg){
-            if(err) {
-                logger.error("Failed to make unconfirmed docs msg. Reasopn: "+err);
-                return;
-            }
-            for(var j in adminChatArr){
-                logger.info("Unconfirmed docs msg is sending to admin by schedule. Chat ID: "+adminChatArr[j].TChatID);
-                bot.sendMsgToChatId(adminChatArr[j].TChatID, adminMsg, {parse_mode:"HTML"});
-            }
-        });
-    });
-}
+
 function sendSalesAndReturnsMsg(){
     var dailySalesRetUsers=appConfig.dailySalesRetUsers;
     if(!dailySalesRetUsers || dailySalesRetUsers.length==0) return;

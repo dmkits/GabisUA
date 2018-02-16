@@ -144,45 +144,6 @@ function makeDiskUsageMsg(sysadminsMsgConfig, callback){
     });
 };
 
-module.exports.makeUnconfirmedDocsMsg =function(callback){
-    var adminMsg='<b>Информация администратору на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> \n';
-    database.getTRecData(function(err, res){
-        if(err){
-            callback(err);
-            return;
-        }
-        var tRecArr=res;
-        if(tRecArr.length==0) {
-            adminMsg+="\n<b>Все приходные накладные подтверждены.</b>";
-            callback(null,adminMsg);
-        }else{
-            adminMsg+="<b>Неподтвержденные приходные накладные:</b> ";
-            for (var i in tRecArr){
-                var dataItem=tRecArr[i];
-                adminMsg+="\n &#12539 "+dataItem.StockName+": "+dataItem.Total;
-            }
-        }
-        database.getTExcData(function(err, res){
-            if(err){
-                callback(err);
-                return;
-            }
-            var tExpArr=res;
-            if(tExpArr.length==0) {
-                adminMsg+="\n<b>Все  накладные перемещения подтверждены.</b>";
-                callback(null,adminMsg);
-                return;
-            }
-            adminMsg+="\n<b>Неподтвержденные накладные перемещения:</b>";
-            for (var k in tExpArr){
-                var dataItem=tExpArr[k];
-                adminMsg+="\n &#12539 "+dataItem.StockName+": "+dataItem.Total;
-            }
-            callback(null,adminMsg);
-        })
-    });
-};
-
 function getDiscUsageInfo(sysadminsMsgConfig, callback) {
     var system = sysadminsMsgConfig.system ? sysadminsMsgConfig.system.trim() : "";
     var backup = sysadminsMsgConfig.backup ? sysadminsMsgConfig.backup.trim() : "";

@@ -10,7 +10,7 @@ else devMode=process.argv[2].toLowerCase().indexOf('dev')>=0;
 
 var logger=null;
 console.log("logger load logger=",logger);
-function makeLogger(){                                                            console.log("makeLogger");
+function makeLogger(){
     var logDir= path.join(__dirname, './logs/');
     try {
         if (!fs.existsSync(logDir))fs.mkdirSync(logDir);
