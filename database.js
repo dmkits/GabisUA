@@ -4,7 +4,7 @@ var path=require('path');
 var DbConnectionError=null;
 var configName=null;
 var logger=require('./logger')();
-var telBotSysadmins = require('./telBotSysadmins')();
+// var telBotSysadmins = require('./telBotSysadmins')();
 
 module.exports.getDbConnectionError= function(callback){
    setImmediate(function(){
@@ -54,8 +54,6 @@ module.exports.getAppConfig=function(){
     }
    return appConfig;
 };
-
-
 function connectToDBRecursively(index, callingFuncMsg, callback){
     connectToDB(function(err){
         if(err && index<5){
@@ -63,6 +61,7 @@ function connectToDBRecursively(index, callingFuncMsg, callback){
                 connectToDBRecursively(index+1,callingFuncMsg,callback);
             },5000);
         }else if(err && index==5){
+            var telBotSysadmins = require('./telBotSysadmins')();
             telBotSysadmins.sendMsgToSysadmins("Не удалось подключиться к БД "+callingFuncMsg+ ". Причина:"+err);
             if(callback)callback(err);
         }else if(callback) callback();

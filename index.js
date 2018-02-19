@@ -14,7 +14,7 @@ var logger=require('./logger.js')();
 
 telBotSysadmins.sendAppStartMsgToSysadmins(appConfig, function(err){
     if(err) return;
-    startSendingAdminMsgBySchedule();
+    telBotAdmins.startSendingAdminMsgBySchedule(appConfig);
     telBotSysadmins.startSendingSysAdminMsgBySchedule(appConfig);
     //startSendingCashierMsgBySchedule();
     //startSendingSalesAndReturnsMsgBySchedule();

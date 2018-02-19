@@ -1,10 +1,10 @@
-var logger = require("./logger");
+var logger=require('./logger')();
 var cron = require('node-cron');
 var database = require('./database');
 var bot=require('./telBot');
-var moment = require('./moment');
+var moment = require('moment');
 
-function startSendingAdminMsgBySchedule(){                                                              logger.info("startSendingAdminMsgBySchedule");
+function startSendingAdminMsgBySchedule(appConfig){                                                              logger.info("startSendingAdminMsgBySchedule");
     var adminSchedule=appConfig.adminSchedule;
     if(!adminSchedule||cron.validate(adminSchedule)==false) return;
     var scheduleAdminMsg =cron.schedule(adminSchedule,
@@ -14,6 +14,7 @@ function startSendingAdminMsgBySchedule(){                                      
     scheduleAdminMsg.start();
 }
 
+module.exports.startSendingAdminMsgBySchedule=startSendingAdminMsgBySchedule;
 function sendAdminMsgBySchedule(){
     database.getAdminChatIds(function(err, res){
         if(err){
