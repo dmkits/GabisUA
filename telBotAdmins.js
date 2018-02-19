@@ -79,3 +79,5 @@ function makeUnconfirmedDocsMsg (callback){
         })
     });
 };
+
+module.exports.makeUnconfirmedDocsMsg=makeUnconfirmedDocsMsg;

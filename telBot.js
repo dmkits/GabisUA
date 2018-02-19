@@ -5,9 +5,10 @@ var logger=require('./logger')();
 var configObj=database.getAppConfig();
 var TOKEN=configObj['botToken'];
 var bot = new TelegramBot(TOKEN, {polling: true});
-var msgManager=require('./msgManager');
-
 var telBotSysadmins=require('./telBotSysadmins');
+                                                                // var msgManager=require('./msgManager');   msgManager
+var telBotAdmins=require('./telBotAdmins');
+var telBotCashiers=require('./telBotCashiers');
 Promise.config({
     cancellation: true
 });
@@ -66,6 +67,7 @@ bot.on('message',(msg)=>{
                 return;
             }
             telBotSysadmins.checkAndRegisterSysAdmin(msg, function(sysAdminRegistered){
+
                 database.checkPhoneAndWriteChatID(phoneNumber,msg.chat.id,
                     function(err,employeeDataArr){
                         if(err){
@@ -107,7 +109,7 @@ function sendMsgToAllUsersWithPhone(index, employeeData,mobile,chatId){
             logger.warn("Failed to send msg to user. Chat ID:"+ chatId +" Reason: ",error.response.body);
         });
     if(employee.ShiftPostID===1){
-        msgManager.makeUnconfirmedDocsMsg(function(err, adminMsg){
+        telBotAdmins.makeUnconfirmedDocsMsg(function(err, adminMsg){
             if(err){
                 logger.error("FAILED to make unconfirmed docs msg"+err);
                 return;
@@ -129,7 +131,7 @@ function sendMsgToAllUsersWithPhone(index, employeeData,mobile,chatId){
                 return;
             }
             var cashierDataArr=res.recordset;
-            msgManager.sendCashierMsgRecursively(0,cashierDataArr, false, function(){
+            telBotCashiers.sendCashierMsgRecursively(0,cashierDataArr, false, function(){
                 sendMsgToAllUsersWithPhone(index+1, employeeData,mobile,chatId);
             });
         })
