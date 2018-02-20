@@ -180,7 +180,7 @@ function sendCashierMsgRecursively(index, cashierDataArr, scheduleCall, callback
             return;
         }
 
-        if(resMsg) bot.sendMsgToChatId(TChatID, resMsg, {parse_mode:"HTML"});
+        if(resMsg) bot.sendMessage(TChatID, resMsg, {parse_mode:"HTML"});
         sendCashierMsgRecursively(index+1,cashierDataArr,scheduleCall,callback);
     });
 };

@@ -20,7 +20,7 @@ function startSendingSalesAndReturnsMsgBySchedule(appConfig){                   
 module.exports.startSendingSalesAndReturnsMsgBySchedule=startSendingSalesAndReturnsMsgBySchedule;
 
 function sendSalesAndReturnsMsg(dailySalesRetUsers){
-    database.getdailySalesRetUsersByPhone(dailySalesRetUsers, function(err,res){
+    database.getDailySalesRetUsersByPhone(dailySalesRetUsers, function(err,res){
         if(err) {
             logger.error("FAILED to get user chat ID for daily sales and returns msg. Reason: " + err);
             if (err.name == 'ConnectionError') {
@@ -32,16 +32,16 @@ function sendSalesAndReturnsMsg(dailySalesRetUsers){
             }
             return;
         }
-        var adminChatArr=res;
-        if(!adminChatArr || adminChatArr.length==0)return;
+        var chiefChatArr=res;
+        if(!chiefChatArr || chiefChatArr.length==0)return;
         makeSalesAndReturnsMsg(function(err,adminMsg){
             if(err) {
                 logger.error("Failed to make sales and returns msg. Reason: "+err.message?err.message:err);
                 return;
             }
-            for(var j in adminChatArr){
-                logger.info("Daily sales and returns msg is sending to admin by schedule. Chat ID: "+adminChatArr[j].TChatID);
-                bot.sendMsgToChatId(adminChatArr[j].TChatID, adminMsg, {parse_mode:"HTML"});
+            for(var j in chiefChatArr){
+                logger.info("Daily sales and returns msg is sending to admin by schedule. Chat ID: "+chiefChatArr[j].TChatID);
+                bot.sendMessage(chiefChatArr[j].TChatID, adminMsg, {parse_mode:"HTML"});
             }
         });
     });

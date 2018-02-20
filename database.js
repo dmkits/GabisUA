@@ -1,4 +1,3 @@
-// var Promise = require('bluebird');
 var mssql=require('mssql');
 var fs= require('fs');
 var path=require('path');
@@ -263,7 +262,7 @@ module.exports.getSalesAndRetSum=function(callback){
             callback(null,res.recordset);
         });
 };
-module.exports.getdailySalesRetUsersByPhone=function(phoneNumArr, callback){
+module.exports.getDailySalesRetUsersByPhone=function(phoneNumArr, callback){
     var phoneStr="(";
     for(var i in phoneNumArr){
         phoneStr=phoneStr+"'"+phoneNumArr[i]+"'";
