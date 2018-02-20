@@ -60,7 +60,7 @@ bot.on('message',(msg)=>{
     }
     if(msg.contact && msg.contact.phone_number){
         var phoneNumber=msg.contact.phone_number;
-        telBotRegistration.registerTelBotUser(phoneNumber);
+        telBotRegistration.registerTelBotUser(phoneNumber,msg.chat.id);
     }
 });
 module.exports.sendMessage= function(chatId, text, form){

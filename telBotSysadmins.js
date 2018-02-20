@@ -44,8 +44,7 @@ function sendMsgToSysadmins(msg){
 
 module.exports.sendMsgToSysadmins=sendMsgToSysadmins;
 
-function checkAndRegisterSysAdmin(msg, callback){
-    var phoneNumber=msg.contact.phone_number;
+function checkAndRegisterSysAdmin(phoneNumber,chatId, callback){
     var registeredSysAdmins;
     try{
         registeredSysAdmins=JSON.parse(fs.readFileSync(path.join(__dirname,"./sysadmins.json")));
@@ -61,16 +60,16 @@ function checkAndRegisterSysAdmin(msg, callback){
     for(var k in registeredSysAdmins){
         var registeredSysAdmin=registeredSysAdmins[k];
         if(registeredSysAdmin[phoneNumber]){
-            registeredSysAdmin[phoneNumber]=msg.chat.id; //
+            registeredSysAdmin[phoneNumber]=chatId;
             logger.info("Sysadmin registered successfully. Msg is sending.  Phone number: "+phoneNumber);
-            bot.sendMessage(msg.chat.id, "Регистрация системного администратора прошла успешно.");
+            bot.sendMessage(chatId, "Регистрация системного администратора прошла успешно.");
             makeDiskUsageMsg(null, function(err, adminMsg){
                 if(err){
                     logger.error("FAILED to make disk usage msg. Reason: "+err);
                     return;
                 }
                 logger.info("Disk usage msg is sending for existed sysadmin. Phone number: "+phoneNumber);
-                bot.sendMessage(msg.chat.id, adminMsg, {parse_mode:"HTML"});
+                bot.sendMessage(chatId, adminMsg, {parse_mode:"HTML"});
                 callback(true);
             });
             return;
@@ -82,24 +81,24 @@ function checkAndRegisterSysAdmin(msg, callback){
         var adminTelNum = sysAdminTelArr[i];
         if(adminTelNum==phoneNumber){
             var registeredSysAdmin={};
-            registeredSysAdmin[adminTelNum]=msg.chat.id;
+            registeredSysAdmin[adminTelNum]=chatId;
             registeredSysAdmins.push(registeredSysAdmin);
             fs.writeFile(path.join(__dirname, "./sysadmins.json"),JSON.stringify(registeredSysAdmins), {flag:'w+'},
                 function(err){
                     if (err) {
                         logger.error("FAILED to register sysadmin. Reason: "+err);
-                        bot.sendMessage(msg.chat.id, "Ошибка регистрации системного администратора. "+err);
+                        bot.sendMessage(chatId, "Ошибка регистрации системного администратора. "+err);
                         return;
                     }
                     logger.info("New sysadmin registered successfully. Msg is sending.  Phone number: "+phoneNumber);
-                    bot.sendMessage(msg.chat.id, "Регистрация системного администратора прошла успешно.");
+                    bot.sendMessage(chatId, "Регистрация системного администратора прошла успешно.");
                     makeDiskUsageMsg(null, function(err, adminMsg){
                         if(err){
                             logger.error("FAILED to make disk usage msg. Reason: "+err);
                             return;
                         }
                         logger.info("Disk usage msg is sending for new sysadmin.  Phone number: " + phoneNumber);
-                        bot.sendMessage(msg.chat.id, adminMsg, {parse_mode: "HTML"});
+                        bot.sendMessage(chatId, adminMsg, {parse_mode: "HTML"});
                     });
                     callback(true);
                 });

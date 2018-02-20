@@ -2,42 +2,33 @@ var logger=require('./logger')();
 var database = require('./database');
 var bot=require('./telBot');
 var telBotSysadmins=require('./telBotSysadmins');
-var telBotSalesReport=require('./telBotSalesReport');
 var telBotAdmins=require('./telBotAdmins');
 var telBotCashiers=require('./telBotCashiers');
 
-
-function registerTelBotUser(phoneNumber){
+function registerTelBotUser(phoneNumber, chatId){
     if(phoneNumber[0]=="+")phoneNumber=phoneNumber.substring(1);
     database.getDbConnectionError(function(dbConnectionError){
         if(dbConnectionError){
-            telBotSysadmins.checkAndRegisterSysAdmin(msg, function(sysAdminRegistered){
+            telBotSysadmins.checkAndRegisterSysAdmin(phoneNumber,chatId, function(sysAdminRegistered){
                 if(!sysAdminRegistered){
-                    bot.sendMessage(msg.chat.id, "Не удалось зарегистрировать пользователя Telegram. Обратитесь к системному администратору.").catch((error)=>{
-                        logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: ",error.response.body);
-                    });
+                    bot.sendMessage(chatId, "Не удалось зарегистрировать пользователя Telegram. Обратитесь к системному администратору.");
                 }
             });
             return;
         }
-        telBotSysadmins.checkAndRegisterSysAdmin(msg, function(sysAdminRegistered){
-
-            database.checkPhoneAndWriteChatID(phoneNumber,msg.chat.id,
+        telBotSysadmins.checkAndRegisterSysAdmin(phoneNumber,chatId, function(sysAdminRegistered){
+            database.checkPhoneAndWriteChatID(phoneNumber,chatId,
                 function(err,employeeDataArr){
                     if(err){
                         logger.error("Failed to check phone number and write chat ID. Reason: "+err);
-                        bot.sendMessage(msg.chat.id, "Не удалось зарегистрировать служащего. Обратитесь к системному администратору.").catch((error)=>{
-                            logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: ",error.response.body);
-                        });
+                        bot.sendMessage(chatId, "Не удалось зарегистрировать служащего. Обратитесь к системному администратору.");
                         return;
                     }
                     if((!employeeDataArr || employeeDataArr.length==0) && !sysAdminRegistered){
                         logger.warn("Failed to register user. Phone number was not found in DB . Phone number: "+phoneNumber);
-                        bot.sendMessage(msg.chat.id, "Номер телефона не найден в справочнике сотрудников.").catch((error)=>{
-                            logger.warn("Failed to send msg to user. Chat ID:"+ msg.chat.id +" Reason: ",error.response.body);
-                        });
+                        bot.sendMessage(chatId, "Номер телефона не найден в справочнике сотрудников.");
                     }
-                    sendMsgToAllUsersWithPhone(0,employeeDataArr,phoneNumber,msg.chat.id);
+                    sendMsgToAllUsersWithPhone(0,employeeDataArr,phoneNumber,chatId);
                 })
         });
     });
@@ -49,12 +40,19 @@ function sendMsgToAllUsersWithPhone(index, employeeData,mobile,chatId){
         return;
     }
     var employee=employeeData[index];
-    var status=employee.ShiftPostID==1 ? "администратор":"кассир";
+    var status;
+    switch (employee.ShiftPostID){
+        case 0: status="кассир";
+            break;
+        case 1: status="администратор";
+            break;
+        case 2: status="директор";
+            break;
+    }
+
     var empID=employee.EmpID;
     logger.info("New user registered successfully as " +status+ ". Phone number: "+mobile);
-    bot.sendMessage(chatId, "Регистрация служащего для рассылки прошла успешно. Статус служащего: "+status+".").catch((error)=>{
-        logger.warn("Failed to send msg to user. Chat ID:"+ chatId +" Reason: ",error.response.body);
-    });
+    bot.sendMessage(chatId, "Регистрация служащего для рассылки прошла успешно. Статус служащего: "+status+".");
     if(employee.ShiftPostID===1){
         telBotAdmins.makeUnconfirmedDocsMsg(function(err, adminMsg){
             if(err){
@@ -62,9 +60,7 @@ function sendMsgToAllUsersWithPhone(index, employeeData,mobile,chatId){
                 return;
             }
             logger.info("Unconfirmed docs msg is sending. Phone number: "+mobile);
-            bot.sendMessage(chatId, adminMsg, {parse_mode:"HTML"}).catch((error)=>{
-                logger.warn("Failed to send msg to user. Chat ID:"+ chatId +" Reason: ",error.response.body);
-            });
+            bot.sendMessage(chatId, adminMsg, {parse_mode:"HTML"});
             sendMsgToAllUsersWithPhone(index+1, employeeData,mobile,chatId);
         });
     }else if(employee.ShiftPostID===0){
@@ -82,5 +78,5 @@ function sendMsgToAllUsersWithPhone(index, employeeData,mobile,chatId){
                 sendMsgToAllUsersWithPhone(index+1, employeeData,mobile,chatId);
             });
         })
-    }
+    }else  sendMsgToAllUsersWithPhone(index+1, employeeData,mobile,chatId);
 }

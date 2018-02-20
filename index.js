@@ -7,7 +7,6 @@ database.setAppConfig(configFileNameParam);
 require('./telBot.js');
 var appConfig=database.getAppConfig();
 var appPort=appConfig["appPort"]||80;
-
 app.listen(appPort, function(){
     logger.info("APP started on port +",appPort);
 });
