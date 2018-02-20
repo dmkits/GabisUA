@@ -48,7 +48,7 @@ module.exports.setAppConfig=function(configFileName){
 function getAppConfig(){
    var appConfig;
     try{
-        appConfig=JSON.parse(fs.readFileSync(path.join(__dirname, configName+'.json')))
+        appConfig=JSON.parse(fs.readFileSync(path.join(__dirname, '../'+configName+'.json')))
     }catch(e){
         logger.error("FAILED to get data from config file. Reason: "+ e);
     }

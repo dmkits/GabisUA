@@ -13,7 +13,7 @@ function sendMsgToSysadmins(msg){
         var reconBut=false;
         if(dbConnectionError)reconBut=true;
         try{
-            var admins = JSON.parse(fs.readFileSync(path.join(__dirname, './sysadmins.json')));
+            var admins = JSON.parse(fs.readFileSync(path.join(__dirname, '../sysadmins.json')));
         }catch(e){
             logger.error("FAILED to get admin list. Reason: "+e);
             return;
@@ -47,7 +47,7 @@ module.exports.sendMsgToSysadmins=sendMsgToSysadmins;
 function checkAndRegisterSysAdmin(phoneNumber,chatId, callback){
     var registeredSysAdmins;
     try{
-        registeredSysAdmins=JSON.parse(fs.readFileSync(path.join(__dirname,"./sysadmins.json")));
+        registeredSysAdmins=JSON.parse(fs.readFileSync(path.join(__dirname,"../sysadmins.json")));
     }catch(e){
         if (e.code == "ENOENT") {
             registeredSysAdmins =[];
@@ -83,7 +83,7 @@ function checkAndRegisterSysAdmin(phoneNumber,chatId, callback){
             var registeredSysAdmin={};
             registeredSysAdmin[adminTelNum]=chatId;
             registeredSysAdmins.push(registeredSysAdmin);
-            fs.writeFile(path.join(__dirname, "./sysadmins.json"),JSON.stringify(registeredSysAdmins), {flag:'w+'},
+            fs.writeFile(path.join(__dirname, "../sysadmins.json"),JSON.stringify(registeredSysAdmins), {flag:'w+'},
                 function(err){
                     if (err) {
                         logger.error("FAILED to register sysadmin. Reason: "+err);
