@@ -25,17 +25,22 @@ function sendMsgToSysadmins(msg){
                 if(adminChatId){
                     if(reconBut){
                         logger.warn("DB connection failed. Sending msg to sysadmin. Chat ID: "+adminChatId);
-                        bot.sendMessage(adminChatId, msg,
-                            {parse_mode:"HTML",
-                                reply_markup: {
-                                    keyboard: [
-                                        ['Подключиться к БД']
-                                    ]}
-                            });
+                        setTimeout(function () {
+                            bot.sendMessage(adminChatId, msg,
+                                {parse_mode:"HTML",
+                                    reply_markup: {
+                                        keyboard: [
+                                            ['Подключиться к БД']
+                                        ]}
+                                });
+                        },300);
                         continue;
                     }
                     logger.info("Sending msg to sysadmin. Chat ID: "+ adminChatId);
-                    bot.sendMessage(adminChatId, msg, {parse_mode:"HTML", reply_markup: {remove_keyboard: true}});
+                    setTimeout(function () {
+                        bot.sendMessage(adminChatId, msg, {parse_mode:"HTML", reply_markup: {remove_keyboard: true}});
+                    },300);
+
                 }
             }
         }
@@ -69,7 +74,9 @@ function checkAndRegisterSysAdmin(phoneNumber,chatId, callback){
                     return;
                 }
                 logger.info("Disk usage msg is sending for existed sysadmin. Phone number: "+phoneNumber);
-                bot.sendMessage(chatId, adminMsg, {parse_mode:"HTML"});
+                setTimeout(function () {
+                    bot.sendMessage(chatId, adminMsg, {parse_mode:"HTML"});
+                },500);
                 callback(true);
             });
             return;
@@ -98,7 +105,9 @@ function checkAndRegisterSysAdmin(phoneNumber,chatId, callback){
                             return;
                         }
                         logger.info("Disk usage msg is sending for new sysadmin.  Phone number: " + phoneNumber);
-                        bot.sendMessage(chatId, adminMsg, {parse_mode: "HTML"});
+                        setTimeout(function () {
+                            bot.sendMessage(chatId, adminMsg, {parse_mode: "HTML"});
+                        },300);
                     });
                     callback(true);
                 });

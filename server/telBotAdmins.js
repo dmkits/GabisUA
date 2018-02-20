@@ -36,7 +36,9 @@ function sendAdminMsgBySchedule(){
             }
             for(var j in adminChatArr){
                 logger.info("Unconfirmed docs msg is sending to admin by schedule. Chat ID: "+adminChatArr[j].TChatID);
-                bot.sendMessage(adminChatArr[j].TChatID, adminMsg, {parse_mode:"HTML"});
+                setTimeout(function(){
+                    bot.sendMessage(adminChatArr[j].TChatID, adminMsg, {parse_mode:"HTML"});
+                },300);
             }
         });
     });

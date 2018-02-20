@@ -180,8 +180,11 @@ function sendCashierMsgRecursively(index, cashierDataArr, scheduleCall, callback
             return;
         }
 
-        if(resMsg) bot.sendMessage(TChatID, resMsg, {parse_mode:"HTML"});
-        sendCashierMsgRecursively(index+1,cashierDataArr,scheduleCall,callback);
+        if(resMsg)
+            setTimeout(function () {
+                bot.sendMessage(TChatID, resMsg, {parse_mode:"HTML"});
+                sendCashierMsgRecursively(index+1,cashierDataArr,scheduleCall,callback);
+            },300);
     });
 };
 

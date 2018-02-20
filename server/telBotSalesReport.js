@@ -41,7 +41,9 @@ function sendSalesAndReturnsMsg(dailySalesRetUsers){
             }
             for(var j in chiefChatArr){
                 logger.info("Daily sales and returns msg is sending to admin by schedule. Chat ID: "+chiefChatArr[j].TChatID);
-                bot.sendMessage(chiefChatArr[j].TChatID, adminMsg, {parse_mode:"HTML"});
+                setTimeout(function () {
+                    bot.sendMessage(chiefChatArr[j].TChatID, adminMsg, {parse_mode:"HTML"},300);
+                });
             }
         });
     });
