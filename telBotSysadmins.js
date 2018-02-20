@@ -29,7 +29,7 @@ function sendMsgToSysadmins(msg){
                             {parse_mode:"HTML",
                                 reply_markup: {
                                     keyboard: [
-                                        [KB.dbConnection]
+                                        ['Подключиться к БД']
                                     ]}
                             });
                         continue;
@@ -224,7 +224,7 @@ function getLastBackupFile(sysadminsMsgConfig, callback){
     callback(null, lastBackupFile);
 }
 
-module.exports.sendAppStartMsgToSysadmins=function(appConfig, callback){                                     logger.info("sendAppStartMsgToSysadmins");
+module.exports.sendAppStartMsgToSysadmins=function(appConfig){                                     logger.info("sendAppStartMsgToSysadmins");
     var msgStr="<b>Telegram bot started.</b>";
     msgStr=msgStr+"<b>\ndbHost:</b>"+appConfig["dbHost"];
     msgStr=msgStr+"<b>\ndbPort:</b>"+appConfig["dbPort"];
@@ -261,11 +261,9 @@ module.exports.sendAppStartMsgToSysadmins=function(appConfig, callback){        
     database.connectToDB(function(err){
         if (err){
             sendMsgToSysadmins(msgStr+"\n Failed to connect to database! Reason:"+err);
-            callback(err);
             return;
         }
         sendMsgToSysadmins(msgStr + "\n Connected to database successfully!");
-        callback();
     });
 };
 

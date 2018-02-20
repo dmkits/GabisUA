@@ -1,3 +1,4 @@
+// var Promise = require('bluebird');
 var mssql=require('mssql');
 var fs= require('fs');
 var path=require('path');
@@ -45,7 +46,7 @@ module.exports.setAppConfig=function(configFileName){
     configName = configFileName;
 };
 
-module.exports.getAppConfig=function(){
+function getAppConfig(){
    var appConfig;
     try{
         appConfig=JSON.parse(fs.readFileSync(path.join(__dirname, configName+'.json')))
@@ -54,14 +55,16 @@ module.exports.getAppConfig=function(){
     }
    return appConfig;
 };
-function connectToDBRecursively(index, callingFuncMsg, callback){
+module.exports.getAppConfig=getAppConfig;
+
+function connectToDBRecursively(index, callingFuncMsg, callback){               console.log("connectToDBRecursively=");
     connectToDB(function(err){
         if(err && index<5){
             setTimeout(function(){
                 connectToDBRecursively(index+1,callingFuncMsg,callback);
             },5000);
         }else if(err && index==5){
-            var telBotSysadmins = require('./telBotSysadmins')();
+            var telBotSysadmins = require('./telBotSysadmins');
             telBotSysadmins.sendMsgToSysadmins("Не удалось подключиться к БД "+callingFuncMsg+ ". Причина:"+err);
             if(callback)callback(err);
         }else if(callback) callback();
@@ -264,7 +267,7 @@ module.exports.getdailySalesRetUsersByPhone=function(phoneNumArr, callback){
     var phoneStr="(";
     for(var i in phoneNumArr){
         phoneStr=phoneStr+"'"+phoneNumArr[i]+"'";
-        if(i<phoneNumArr.length){
+        if(i<phoneNumArr.length-1){
             phoneStr=phoneStr+",";
         }
     }

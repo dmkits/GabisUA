@@ -37,6 +37,6 @@ function makeLogger(){
     return logger;
 }
 module.exports=function(){
-    if(!logger) makeLogger();
+    if(!logger) return makeLogger();
     else  return logger;
 };

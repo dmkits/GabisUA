@@ -6,14 +6,18 @@ var configObj=database.getAppConfig();
 var TOKEN=configObj['botToken'];
 var bot = new TelegramBot(TOKEN, {polling: true});
 var telBotSysadmins=require('./telBotSysadmins');
-                                                                // var msgManager=require('./msgManager');   msgManager
+var telBotSalesReport=require('./telBotSalesReport');
 var telBotAdmins=require('./telBotAdmins');
 var telBotCashiers=require('./telBotCashiers');
 Promise.config({
     cancellation: true
 });
 
-
+telBotSysadmins.sendAppStartMsgToSysadmins(configObj);
+telBotAdmins.startSendingAdminMsgBySchedule(configObj);
+telBotSysadmins.startSendingSysAdminMsgBySchedule(configObj);
+telBotCashiers.startSendingCashierMsgBySchedule(configObj);
+telBotSalesReport.startSendingSalesAndReturnsMsgBySchedule(configObj);
 
 var KB={
     registration:'Зарегистироваться',
