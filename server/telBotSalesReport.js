@@ -26,7 +26,7 @@ function sendSalesAndReturnsMsg(dailySalesRetUsers){
             if (err.name == 'ConnectionError') {
                 database.connectToDBRecursively(0, "при попытке рассылки сообщений о суммах продаж и возвратов ", function (err) {
                     if (!err) {
-                        sendSalesAndReturnsMsg();
+                        sendSalesAndReturnsMsg(dailySalesRetUsers);
                     }
                 });
             }

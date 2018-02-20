@@ -13,7 +13,7 @@ module.exports.getDbConnectionError= function(callback){
 };
 
 function connectToDB(callback){
-    var appConfig=this.getAppConfig();
+    var appConfig=getAppConfig();
     mssql.close();
     mssql.connect({
         "user": appConfig.dbUser,
@@ -56,7 +56,7 @@ function getAppConfig(){
 };
 module.exports.getAppConfig=getAppConfig;
 
-function connectToDBRecursively(index, callingFuncMsg, callback){               console.log("connectToDBRecursively=");
+function connectToDBRecursively(index, callingFuncMsg, callback){
     connectToDB(function(err){
         if(err && index<5){
             setTimeout(function(){
@@ -263,6 +263,10 @@ module.exports.getSalesAndRetSum=function(callback){
         });
 };
 module.exports.getDailySalesRetUsersByPhone=function(phoneNumArr, callback){
+     if(phoneNumArr.length==0){
+        callback();
+        return;
+    }
     var phoneStr="(";
     for(var i in phoneNumArr){
         phoneStr=phoneStr+"'"+phoneNumArr[i]+"'";
@@ -272,7 +276,7 @@ module.exports.getDailySalesRetUsersByPhone=function(phoneNumArr, callback){
     }
     phoneStr=phoneStr+")";
     var request = new mssql.Request();
-    var queryStr="select TChatID from r_Emps where ShiftPostID=1 AND Mobile in " + phoneStr;    console.log("queryStr=",queryStr);
+    var queryStr="select TChatID from r_Emps where ShiftPostID=1 AND Mobile in " + phoneStr;
     request.query(queryStr,
         function(err,res){
             if(err){

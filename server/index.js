@@ -7,6 +7,9 @@ database.setAppConfig(configFileNameParam);
 require('./telBot.js');
 var appConfig=database.getAppConfig();
 var appPort=appConfig["appPort"]||80;
+process.on('uncaughtException', function(err){
+    logger.error("uncaughtException occurred "+err);
+});
 app.listen(appPort, function(){
     logger.info("APP started on port +",appPort);
 });
