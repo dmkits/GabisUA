@@ -38,123 +38,117 @@ function sendCashierMsgBySchedule(){
     });
 }
 
+function getUnconfirmedTRecMsgByStockId(cashierData, callback){
+    var stockID=cashierData["StockID"];
+    var msg="";
+    database.getUnconfirmedTRecByStockId(stockID, function(err, res) {
+        if (err) {
+            callback(err);
+            return;
+        }
+        if (res.recordset && res.recordset.length > 0) {
+            msg += "\n<b>Неподтвержденные приходные накладные:</b> ";
+            var unconfirmedRecArr = res.recordset;
+            for (var j in unconfirmedRecArr) {
+                msg += "\n &#12539 № " + unconfirmedRecArr[j]["DocID"] + " от " + moment(unconfirmedRecArr[j]["DocDate"]).format("DD.MM.YYYY");
+            }
+        }
+        callback(null,msg);
+    });
+}
+
+function getUnconfirmedTExcMsgByStockId(stockID, callback){
+    var msg="";
+    database.getUnconfirmedTExcByStockId(stockID,function(err, res) {
+        if (err) {
+            callback(err);
+            return;
+        }
+        if (res.recordset && res.recordset.length > 0) {
+            msg += "\n<b>Неподтвержденные накладные перемещения:</b> ";
+            var unconfirmedExcArr = res.recordset;
+            for (var j in unconfirmedExcArr) {
+                msg += "\n &#12539 № " + unconfirmedExcArr[j]["DocID"] + " от " + moment(unconfirmedExcArr[j]["DocDate"]).format("DD.MM.YYYY");
+            }
+        }
+        callback(null,msg);
+    });
+}
+function getReturnedTExcMsgByStockId(stockID, callback){
+    var msg="";
+    database.getReturnedTExcByStockId(stockID, function(err,res) {
+        if (err) {
+            callback(err);
+            return;
+        }
+        if (res.recordset && res.recordset.length > 0) {
+            msg += "\n<b>Возвращенные накладные перемещения:</b> ";
+            var returnedExcArr = res.recordset;
+            for (var j in returnedExcArr) {
+                msg += "\n &#12539 № " + returnedExcArr[j]["DocID"] + " от " + moment(returnedExcArr[j]["DocDate"]).format("DD.MM.YYYY");
+            }
+        }
+        callback(null,msg);
+    });
+}
+function getTSestMsgByStockId(stockID, callback){
+    var msg="";
+    database.getTSestByStockId(stockID,function(err,res) {
+        if (err) {
+            callback(err);
+            return;
+        }
+        if (res.recordset && res.recordset.length > 0) {
+            msg += "\n<b>Переоценка цен продажи:</b>";
+            var priceChangedDocsArr = res.recordset;
+            for (var e in priceChangedDocsArr) {
+                msg += "\n &#12539 № " + priceChangedDocsArr[e]["DocID"] + " от " + moment(priceChangedDocsArr[e]["DocDate"]).format("DD.MM.YYYY");
+                var chId = priceChangedDocsArr[e]["ChID"];
+                sestSendChIDObj[chId] = true;
+            }
+        }
+        callback(null,msg);
+    });
+}
+
 module.exports.makeCashierMsg=function(cashierData, callback){
     var stockID=cashierData["StockID"];
     var StockName=cashierData["StockName"];
     var CRName=cashierData["CRName"];
+    var msgHeader= "";
     var cashierMsg="";
-    database.getTRecByStockId(stockID, function(err, res){
+        msgHeader = '<b>Информация кассиру на ' + moment(new Date()).format('HH:mm DD.MM.YYYY') + ' </b> ';
+        msgHeader += "\n<b>Касса:</b> " + CRName + "\n<b>Склад:</b> " + StockName;
+    getUnconfirmedTRecMsgByStockId(cashierData, function(err,msg){
         if(err){
             callback(err);
             return;
         }
-        if(res.recordset && res.recordset.length>0){
-            cashierMsg='<b>Информация кассиру на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> ';
-            cashierMsg+="\n<b>Касса:</b> "+ CRName +"\n<b>Склад:</b> "+StockName;
-            cashierMsg+="\n<b>Неподтвержденные приходные накладные:</b> ";
-            var unconfirmedRecArr=res.recordset;
-            for(var j in unconfirmedRecArr){
-                cashierMsg += "\n &#12539 № "+unconfirmedRecArr[j]["DocID"] +" от "+moment(unconfirmedRecArr[j]["DocDate"]).format("DD.MM.YYYY");
+        cashierMsg=cashierMsg+msg;
+        getUnconfirmedTExcMsgByStockId(stockID, function(err,msg){
+            if(err){
+                callback(err);
+                return;
             }
-            database.getTExcByStockId(stockID,function(err, res){
+            cashierMsg=cashierMsg+msg;
+            getReturnedTExcMsgByStockId(stockID, function(err,msg){
                 if(err){
                     callback(err);
                     return;
                 }
-                if(res.recordset && res.recordset.length>0) {
-                    cashierMsg += "\n<b>Неподтвержденные накладные перемещения:</b> ";
-                    var unconfirmedExcArr = res.recordset;
-                    for (var j in unconfirmedExcArr) {
-                        cashierMsg += "\n &#12539 № " + unconfirmedExcArr[j]["DocID"] + " от " + moment(unconfirmedExcArr[j]["DocDate"]).format("DD.MM.YYYY");
-                    }
-                    database.getTSestByStockId(stockID,function(err,res){
-                        if(err){
-                            callback(err);
-                            return;
-                        }
-                        if(res.recordset && res.recordset.length>0){
-                            cashierMsg += "\n<b>Переоценка цен продажи:</b> ";
-                            var priceChangedDocsArr=res.recordset;
-                            for (var e in priceChangedDocsArr) {
-                                cashierMsg += "\n &#12539 № " + priceChangedDocsArr[e]["DocID"] + " от " + moment(priceChangedDocsArr[e]["DocDate"]).format("DD.MM.YYYY");
-                                var chId=priceChangedDocsArr[e]["ChID"];
-                                sestSendChIDObj[chId]=true;
-                            }
-                        }
-                        callback(null,cashierMsg);
-                    });
-                    return;
-                }
-                database.getTSestByStockId(stockID,function(err,res){
+                cashierMsg=cashierMsg+msg;
+                getTSestMsgByStockId(stockID, function(err,msg){
                     if(err){
                         callback(err);
                         return;
                     }
-                    if(res.recordset && res.recordset.length>0){
-                        cashierMsg += "\n<b>Переоценка цен продажи:</b> ";
-                        var priceChangedDocsArr=res.recordset;
-                        for (var e in priceChangedDocsArr) {
-                            cashierMsg += "\n &#12539 № " + priceChangedDocsArr[e]["DocID"] + " от " + moment(priceChangedDocsArr[e]["DocDate"]).format("DD.MM.YYYY");
-                            var chId=priceChangedDocsArr[e]["ChID"];
-                            sestSendChIDObj[chId]=true;
-                        }
-                    }
+                    cashierMsg=cashierMsg+msg;
+                    if(cashierMsg)cashierMsg=msgHeader+cashierMsg;
                     callback(null,cashierMsg);
-                });
+                })
             })
-        }else{
-            database.getTExcByStockId(stockID,function(err, res){
-                if(err){
-                    callback(err);
-                    return;
-                }
-                if(res.recordset && res.recordset.length>0) {
-                    cashierMsg='<b>Информация кассиру на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> ';
-                    cashierMsg+="\n<b>Касса:</b> "+ CRName +"\n<b>Склад:</b> "+StockName;
-                    cashierMsg+= "\n<b>Неподтвержденные накладные перемещения:</b> ";
-                    var unconfirmedExcArr = res.recordset;
-                    for (var j in unconfirmedExcArr) {
-                        cashierMsg += "\n &#12539 № " + unconfirmedExcArr[j]["DocID"] + " от " + moment(unconfirmedExcArr[j]["DocDate"]).format("DD.MM.YYYY");
-                    }
-                    database.getTSestByStockId(stockID,function(err,res){
-                        if(err){
-                            callback(err);
-                            return;
-                        }
-                        if(res.recordset && res.recordset.length>0){
-                            cashierMsg += "\n<b>Переоценка цен продажи:</b> ";
-                            var priceChangedDocsArr=res.recordset;
-                            for (var e in priceChangedDocsArr) {
-                                cashierMsg += "\n &#12539 № " + priceChangedDocsArr[e]["DocID"] + " от " + moment(priceChangedDocsArr[e]["DocDate"]).format("DD.MM.YYYY");
-                                var chId=priceChangedDocsArr[e]["ChID"];
-                                sestSendChIDObj[chId]=true;
-                            }
-                        }
-                        callback(null,cashierMsg);
-                    });
-                    return;
-                }
-                database.getTSestByStockId(stockID,function(err,res){
-                    if(err){
-                        callback(err);
-                        return;
-                    }
-                    if(res.recordset && res.recordset.length>0){
-                        cashierMsg='<b>Информация кассиру на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> ';
-                        cashierMsg+="\n<b>Касса:</b> "+ CRName +"\n<b>Склад:</b> "+StockName;
-                        cashierMsg += "\n<b>Переоценка цен продажи:</b> ";
-                        var priceChangedDocsArr=res.recordset;
-                        for (var e in priceChangedDocsArr) {
-                            cashierMsg += "\n &#12539 № " + priceChangedDocsArr[e]["DocID"] + " от " + moment(priceChangedDocsArr[e]["DocDate"]).format("DD.MM.YYYY");
-                            var chId=priceChangedDocsArr[e]["ChID"];
-                            sestSendChIDObj[chId]=true;
-                        }
-                    }
-                    callback(null,cashierMsg);
-                });
-            });
-        }
-    });
+        })
+    })
 };
 
 var sestSendChIDObj={};
@@ -179,7 +173,6 @@ function sendCashierMsgRecursively(index, cashierDataArr, scheduleCall, callback
             logger.error("FAILED to create msg for cashier. Reason: "+err);
             return;
         }
-
         if(resMsg)
             setTimeout(function () {
                 bot.sendMessage(TChatID, resMsg, {parse_mode:"HTML"});

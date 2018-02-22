@@ -13,7 +13,6 @@ function startSendingAdminMsgBySchedule(appConfig){                             
         });
     scheduleAdminMsg.start();
 }
-
 module.exports.startSendingAdminMsgBySchedule=startSendingAdminMsgBySchedule;
 function sendAdminMsgBySchedule(){
     database.getAdminChatIds(function(err, res){
@@ -45,7 +44,7 @@ function sendAdminMsgBySchedule(){
 }
 function makeUnconfirmedDocsMsg (callback){
     var adminMsg='<b>Информация администратору на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> \n';
-    database.getTRecData(function(err, res){
+    database.getUnconfirmedTRecData(function(err, res){
         if(err){
             callback(err);
             return;
@@ -53,15 +52,14 @@ function makeUnconfirmedDocsMsg (callback){
         var tRecArr=res;
         if(tRecArr.length==0) {
             adminMsg+="\n<b>Все приходные накладные подтверждены.</b>";
-            callback(null,adminMsg);
         }else{
-            adminMsg+="<b>Неподтвержденные приходные накладные:</b> ";
+            adminMsg+="<b>Неподтвержденные приходные накладные:</b>";
             for (var i in tRecArr){
                 var dataItem=tRecArr[i];
                 adminMsg+="\n &#12539 "+dataItem.StockName+": "+dataItem.Total;
             }
         }
-        database.getTExcData(function(err, res){
+        database.getUnconfirmedTExcData(function(err, res){
             if(err){
                 callback(err);
                 return;
@@ -69,17 +67,43 @@ function makeUnconfirmedDocsMsg (callback){
             var tExpArr=res;
             if(tExpArr.length==0) {
                 adminMsg+="\n<b>Все  накладные перемещения подтверждены.</b>";
-                callback(null,adminMsg);
-                return;
+            }else{
+                adminMsg+="\n<b>Неподтвержденные накладные перемещения:</b>";
+                for (var k in tExpArr){
+                    var dataItem=tExpArr[k];
+                    adminMsg+="\n &#12539 "+dataItem.StockName+": "+dataItem.Total;
+                }
             }
-            adminMsg+="\n<b>Неподтвержденные накладные перемещения:</b>";
-            for (var k in tExpArr){
-                var dataItem=tExpArr[k];
-                adminMsg+="\n &#12539 "+dataItem.StockName+": "+dataItem.Total;
-            }
-            callback(null,adminMsg);
+            database.getReturnedTRecData(function(err, res){
+                if(err){
+                    callback(err);
+                    return;
+                }
+                var tRecReturnedArr=res;
+                if(tRecReturnedArr.length>0) {
+                    adminMsg += "\n<b>Возвращенные приходные накладные:</b>";
+                    for (var i in tRecReturnedArr) {
+                        var dataItem = tRecReturnedArr[i];
+                        adminMsg += "\n &#12539 " + dataItem.StockName + ": " + dataItem.Total;
+                    }
+                }
+                database.getReturnedTExcData(function(err, res){
+                    if(err){
+                        callback(err);
+                        return;
+                    }
+                    var tExpReturnedArr=res;
+                    if(tExpReturnedArr.length>0){
+                        adminMsg+="\n<b>Возвращенные накладные перемещения:</b>";
+                        for (var k in tExpReturnedArr){
+                            var dataItem=tExpReturnedArr[k];
+                            adminMsg+="\n &#12539 "+dataItem.StockName+": "+dataItem.Total;
+                        }
+                    }
+                    callback(null,adminMsg);
+                });
+            });
         })
     });
 };
-
 module.exports.makeUnconfirmedDocsMsg=makeUnconfirmedDocsMsg;

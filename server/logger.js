@@ -4,9 +4,7 @@ var path=require('path');
 var moment = require('moment');
 var devMode;
 if(!process.argv[2])devMode=false;
-else devMode=process.argv[2].toLowerCase().indexOf('dev')>=0;
-
-
+else devMode= process.argv[2].toLowerCase().indexOf('debug')>=0;
 
 var logger=null;
 function makeLogger(){

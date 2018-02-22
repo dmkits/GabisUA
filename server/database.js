@@ -110,7 +110,7 @@ module.exports.getAdminChatIds=function(callback){
         });
 };
 
-module.exports.getTRecData=function(callback){
+module.exports.getUnconfirmedTRecData=function(callback){        //Unconfirmed pinvs
     var request = new mssql.Request();
     request.query("select m.StockID, st.StockName, Count(1) as Total " +
         "from t_Rec m " +
@@ -127,12 +127,46 @@ module.exports.getTRecData=function(callback){
         });
 };
 
-module.exports.getTExcData=function(callback){
+module.exports.getReturnedTRecData=function(callback){           //Returned pinvs
+    var request = new mssql.Request();
+    request.query("select m.StockID, st.StockName, Count(1) as Total " +
+        "from t_Rec m " +
+        "inner join r_Stocks st on st.StockID=m.StockID" +
+        " where m.StateCode=52" +
+        "group by m.StockID, st.StockName " +
+        "order by m.StockID",
+        function(err,res){
+            if(err){
+                callback(err);
+                return;
+            }
+            callback(null,res.recordset);
+        });
+};
+
+module.exports.getUnconfirmedTExcData=function(callback){  //Unconfirmed movement invs
     var request = new mssql.Request();
     request.query("select m.NewStockID, st.StockName, Count(1) as Total " +
         "from t_Exc m " +
         "inner join r_Stocks st on st.StockID=m.NewStockID " +
         "where m.StateCode in (56,50) " +
+        "group by m.NewStockID, st.StockName " +
+        "order by m.NewStockID",
+        function(err,res){
+            if(err){
+                callback(err);
+                return;
+            }
+            callback(null,res.recordset);
+        });
+};
+
+module.exports.getReturnedTExcData=function(callback){  //Returned movement invs
+    var request = new mssql.Request();
+    request.query("select m.NewStockID, st.StockName, Count(1) as Total " +
+        "from t_Exc m " +
+        "inner join r_Stocks st on st.StockID=m.NewStockID " +
+        "where m.StateCode=58 " +
         "group by m.NewStockID, st.StockName " +
         "order by m.NewStockID",
         function(err,res){
@@ -170,7 +204,7 @@ module.exports.getCashierDataArr=function(EmpID, callback){
         });
 };
 
-module.exports.getTRecByStockId=function(stockID, callback){
+module.exports.getUnconfirmedTRecByStockId=function(stockID, callback){
     var request = new mssql.Request();
     request.input('StockID', stockID);
     request.query("select m.DocID, m.DocDate, m.OurID, m.StockID, m.Notes, m.StateCode " +
@@ -186,13 +220,30 @@ module.exports.getTRecByStockId=function(stockID, callback){
         });
 };
 
-module.exports.getTExcByStockId=function(stockID, callback){
+module.exports.getUnconfirmedTExcByStockId=function(stockID, callback){
     var request = new mssql.Request();
     request.input('StockID', stockID);
     request.query("select m.DocID, m.DocDate, m.OurID, m.NewStockID, m.Notes, m.StateCode " +
         "from t_Exc m " +
         "where m.StateCode in(50,56)  " +
         "and m.NewStockID=@StockID "+
+        "order by m.DocDate, m.DocID",
+        function(err,res){
+            if(err){
+                callback(err);
+                return;
+            }
+            callback(null,res);
+        });
+};
+
+module.exports.getReturnedTExcByStockId=function(stockID, callback){
+    var request = new mssql.Request();
+    request.input('StockID', stockID);
+    request.query("select m.DocID, m.DocDate, m.OurID, m.Notes " +
+        "from t_Exc m " +
+        "where m.StateCode = 58  " +
+        "and m.StockID=@StockID "+
         "order by m.DocDate, m.DocID",
         function(err,res){
             if(err){

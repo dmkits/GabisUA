@@ -6,10 +6,10 @@
   "dbPassword":"GMSgms123",
   "appPort":"8080",
   "botToken":"464525746:AAFVhlT6jp5cgaS02vtCUHpD0-z6_5wb8j4",
-  "sysadmins":["380675612300","380637868770"],
+  "sysadmins":["380675612300","380637868770","380981175096"],
   "sysadminsSchedule":"0 */30 18-22/1 * * *",
   "adminSchedule":"0 */20 18-22/1 * * *",
-  "dailySalesRetSchedule":"*/15 * * * * *",
+  "dailySalesRetSchedule":"0 */15 * * * *",
   "dailySalesRetUsers":["380675612300","380637868770"],
   "cashierSchedule":"0 */15 18-22/1 * * *",
   "sysadminsMsgConfig":{

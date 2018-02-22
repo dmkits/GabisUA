@@ -14,7 +14,6 @@ Promise.config({
     cancellation: true
 });
 
-telBotSysadmins.sendAppStartMsgToSysadmins(configObj);
 telBotAdmins.startSendingAdminMsgBySchedule(configObj);
 telBotSysadmins.startSendingSysAdminMsgBySchedule(configObj);
 telBotCashiers.startSendingCashierMsgBySchedule(configObj);
@@ -67,4 +66,7 @@ module.exports.sendMessage= function(chatId, text, form){
     bot.sendMessage(chatId, text, form).catch((error)=>{
         logger.warn("Failed to send msg to user. Chat ID:"+ chatId +" Reason: ",error.response.body);
     });
+};
+module.exports.sendStartMsg=function(){
+    telBotSysadmins.sendAppStartMsgToSysadmins(configObj);
 };
