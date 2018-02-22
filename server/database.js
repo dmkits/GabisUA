@@ -144,7 +144,7 @@ module.exports.getReturnedTRecData=function(callback){           //Returned pinv
         });
 };
 
-module.exports.getUnconfirmedTExcData=function(callback){  //Unconfirmed movement invs
+module.exports.getUnconfirmedTExcData=function(callback){                                       //Unconfirmed movement invs
     var request = new mssql.Request();
     request.query("select m.NewStockID, st.StockName, Count(1) as Total " +
         "from t_Exc m " +
@@ -161,7 +161,7 @@ module.exports.getUnconfirmedTExcData=function(callback){  //Unconfirmed movemen
         });
 };
 
-module.exports.getReturnedTExcData=function(callback){  //Returned movement invs
+module.exports.getReturnedTExcData=function(callback){                                          //Returned movement invs
     var request = new mssql.Request();
     request.query("select m.NewStockID, st.StockName, Count(1) as Total " +
         "from t_Exc m " +

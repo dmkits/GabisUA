@@ -34,18 +34,23 @@ function sendSalesAndReturnsMsg(dailySalesRetUsers){
         }
         var chiefChatArr=res;
         if(!chiefChatArr || chiefChatArr.length==0)return;
-        makeSalesAndReturnsMsg(function(err,adminMsg){
+        makeSalesAndReturnsMsg(function(err,chiefMsg){
             if(err) {
                 logger.error("Failed to make sales and returns msg. Reason: "+err.message?err.message:err);
                 return;
             }
-            for(var j in chiefChatArr){
-                logger.info("Daily sales and returns msg is sending to admin by schedule. Chat ID: "+chiefChatArr[j].TChatID);
-                setTimeout(function () {
-                    bot.sendMessage(chiefChatArr[j].TChatID, adminMsg, {parse_mode:"HTML"},300);
-                });
-            }
+            sendSalesAndReturnsMsgRecursively(0,chiefChatArr, chiefMsg);
         });
+    });
+}
+
+function sendSalesAndReturnsMsgRecursively(index,SalesAndReturnsMsg, msg){
+    if(!SalesAndReturnsMsg[index]) return;
+    var TChatID=SalesAndReturnsMsg[index].TChatID;
+    logger.info("Daily sales and returns msg is sending to admin by schedule. Chat ID: "+TChatID);
+    setTimeout(function () {
+        bot.sendMessage(TChatID, msg, {parse_mode:"HTML"},300);
+        sendSalesAndReturnsMsgRecursively(index+1,SalesAndReturnsMsg, msg);
     });
 }
 

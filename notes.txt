@@ -3,3 +3,5 @@
 
 //var TOKEN='491349310:AAG0qRPlpmJucU0hRZXzzwhlgo5yjt-zOjQ'; //Garbis
 //var TOKEN='464525746:AAFVhlT6jp5cgaS02vtCUHpD0-z6_5wb8j4';   //GarbisDev
+
+"adminSchedule":"0 */20 18-22/1 * * *",

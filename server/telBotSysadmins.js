@@ -18,34 +18,38 @@ function sendMsgToSysadmins(msg){
             logger.error("FAILED to get admin list. Reason: "+e);
             return;
         }
-        for(var j in admins){
-            var admin=admins[j];
-            for(var h in admin){
-                var adminChatId=admin[h];
-                if(adminChatId){
-                    if(reconBut){
-                        logger.warn("DB connection failed. Sending msg to sysadmin. Chat ID: "+adminChatId);
-                        setTimeout(function () {
-                            bot.sendMessage(adminChatId, msg,
-                                {parse_mode:"HTML",
-                                    reply_markup: {
-                                        keyboard: [
-                                            ['Подключиться к БД']
-                                        ]}
-                                });
-                        },300);
-                        continue;
-                    }
-                    logger.info("Sending msg to sysadmin. Chat ID: "+ adminChatId);
-                    setTimeout(function () {
-                        bot.sendMessage(adminChatId, msg, {parse_mode:"HTML", reply_markup: {remove_keyboard: true}});
-                    },300);
-
-                }
-            }
-        }
+        sendMsgToSysadminsRecursively(0,admins,msg,reconBut);
     });
 };
+
+function sendMsgToSysadminsRecursively(index, sysadminsArray,msg,reconBut){
+    if(!sysadminsArray[index]) return;
+    var admin=sysadminsArray[index];
+    for(var h in admin){
+        var adminChatId=admin[h];
+        if(adminChatId){
+            if(reconBut){
+                logger.warn("DB connection failed. Sending msg to sysadmin. Chat ID: "+adminChatId);
+                setTimeout(function () {
+                    bot.sendMessage(adminChatId, msg,
+                        {parse_mode:"HTML",
+                            reply_markup: {
+                                keyboard: [
+                                    ['Подключиться к БД']
+                                ]}
+                        });
+                },300);
+                sendMsgToSysadminsRecursively(index+1, sysadminsArray,msg,reconBut);
+            }else{
+                logger.info("Sending msg to sysadmin. Chat ID: "+ adminChatId);
+                setTimeout(function () {
+                    bot.sendMessage(adminChatId, msg, {parse_mode:"HTML", reply_markup: {remove_keyboard: true}});
+                    sendMsgToSysadminsRecursively(index+1, sysadminsArray,msg,reconBut);
+                },300);
+            }
+        }
+    }
+}
 
 module.exports.sendMsgToSysadmins=sendMsgToSysadmins;
 
@@ -61,7 +65,6 @@ function checkAndRegisterSysAdmin(phoneNumber,chatId, callback){
             return;
         }
     }
-
     for(var k in registeredSysAdmins){
         var registeredSysAdmin=registeredSysAdmins[k];
         if(registeredSysAdmin[phoneNumber]){

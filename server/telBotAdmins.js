@@ -33,15 +33,21 @@ function sendAdminMsgBySchedule(){
                 logger.error("Failed to make unconfirmed docs msg. Reasopn: "+err);
                 return;
             }
-            for(var j in adminChatArr){
-                logger.info("Unconfirmed docs msg is sending to admin by schedule. Chat ID: "+adminChatArr[j].TChatID);
-                setTimeout(function(){
-                    bot.sendMessage(adminChatArr[j].TChatID, adminMsg, {parse_mode:"HTML"});
-                },300);
-            }
+            sendMessageToAdminsRecursively(0, adminChatArr,adminMsg)
         });
     });
 }
+
+function sendMessageToAdminsRecursively(index, adminArray,adminMsg){
+    if(!adminArray[index]) return;
+    var TChatID=adminArray[index].TChatID;
+        logger.info("Unconfirmed docs msg is sending to admin by schedule. Chat ID: "+TChatID);
+        setTimeout(function(){
+            bot.sendMessage(TChatID, adminMsg, {parse_mode:"HTML"});
+            sendMessageToAdminsRecursively(index+1, adminArray,adminMsg)
+        },300);
+}
+
 function makeUnconfirmedDocsMsg (callback){
     var adminMsg='<b>Информация администратору на '+moment(new Date()).format('HH:mm DD.MM.YYYY')+' </b> \n';
     database.getUnconfirmedTRecData(function(err, res){
