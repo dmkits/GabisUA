@@ -19,7 +19,7 @@ function startSendingSalesAndReturnsMsgBySchedule(appConfig){                   
 };
 module.exports.startSendingSalesAndReturnsMsgBySchedule=startSendingSalesAndReturnsMsgBySchedule;
 
-function sendSalesAndReturnsMsg(dailySalesRetUsers){
+function sendSalesAndReturnsMsg(dailySalesRetUsers){                                 logger.info("SENDING SALES AND RETURNS REPORTS MSG BY SCHEDULE...");
     database.getDailySalesRetUsersByPhone(dailySalesRetUsers, function(err,res){
         if(err) {
             logger.error("FAILED to get user chat ID for daily sales and returns msg. Reason: " + err);

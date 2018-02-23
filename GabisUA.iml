@@ -6,5 +6,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="ES2017" level="project" />
     <orderEntry type="library" name="GarbisTelBot node_modules" level="project" />
+    <orderEntry type="library" name="GabisUA node_modules" level="project" />
   </component>
 </module>

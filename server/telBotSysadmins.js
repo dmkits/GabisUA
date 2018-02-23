@@ -8,7 +8,7 @@ var cron = require('node-cron');
 var moment = require('moment');
 var configObj=database.getAppConfig();
 
-function sendMsgToSysadmins(msg){
+function sendMsgToSysadmins(msg){                                            logger.info("SENDING SYSADMIN MSG BY SCHEDULE...");
     database.getDbConnectionError(function(dbConnectionError){
         var reconBut=false;
         if(dbConnectionError)reconBut=true;

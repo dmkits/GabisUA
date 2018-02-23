@@ -14,7 +14,7 @@ function startSendingAdminMsgBySchedule(appConfig){                             
     scheduleAdminMsg.start();
 }
 module.exports.startSendingAdminMsgBySchedule=startSendingAdminMsgBySchedule;
-function sendAdminMsgBySchedule(){
+function sendAdminMsgBySchedule(){                                                                              logger.info("SENDING ADMIN MSG BY SCHEDULE...");
     database.getAdminChatIds(function(err, res){
         if(err){
             logger.error("FAILED to get admins chat ID. Reason: "+err);

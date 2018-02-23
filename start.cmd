@@ -1,1 +1,1 @@
-node server/index.js debug
+node server/index.js

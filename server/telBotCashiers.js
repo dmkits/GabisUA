@@ -16,8 +16,8 @@ function startSendingCashierMsgBySchedule(appConfig){                           
 }
 module.exports.startSendingCashierMsgBySchedule=startSendingCashierMsgBySchedule;
 
-function sendCashierMsgBySchedule(){
-    database.getCashierDataArr(null,function(err, res){
+function sendCashierMsgBySchedule(){                                      logger.info("SENDING CASHIER MSG BY SCHEDULE...");
+    database.getCashierDataArr(null,function(err, res){                   logger.info(res.recordset.length +" CASHIERS WAS FOUND IN DATABASE");
         if(err){
             logger.error("Failed to get cashier array. Reason: "+err);
             if(err.name=="ConnectionError")   {
@@ -157,7 +157,6 @@ function sendCashierMsgRecursively(index, cashierDataArr, scheduleCall, callback
     if(!cashierDataArr[index]){
         if(callback)callback();
         if(scheduleCall && Object.keys(sestSendChIDObj).length>0){
-
             var chIDArr=[];
             for(var i in sestSendChIDObj)chIDArr.push(i);
             insertSEstMsgCountRecursively(0,chIDArr,function(){
@@ -175,6 +174,8 @@ function sendCashierMsgRecursively(index, cashierDataArr, scheduleCall, callback
         }
         if(resMsg)
             setTimeout(function () {
+                logger.info("Try to send msg to cashier "+cashierDataArr[index]["EmpName"]+" (EmpID:"+cashierDataArr[index]["EmpID"] +") TChatID:" +
+                    + cashierDataArr[index]["TChatID"]+" ("+cashierDataArr[index]["Mobile"]+") ");
                 bot.sendMessage(TChatID, resMsg, {parse_mode:"HTML"});
                 sendCashierMsgRecursively(index+1,cashierDataArr,scheduleCall,callback);
             },300);
