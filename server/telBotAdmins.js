@@ -15,7 +15,7 @@ function startSendingAdminMsgBySchedule(appConfig){                             
 }
 module.exports.startSendingAdminMsgBySchedule=startSendingAdminMsgBySchedule;
 function sendAdminMsgBySchedule(){                                                                              logger.info("SENDING ADMIN MSG BY SCHEDULE...");
-    database.getAdminChatIds(function(err, res){
+    database.getAdminChatIds(function(err, res){                                                                logger.info(res.length + " ADMINS WAS FOUND IN DATABASE");
         if(err){
             logger.error("FAILED to get admins chat ID. Reason: "+err);
             if(err.name=='ConnectionError')   {
@@ -27,7 +27,7 @@ function sendAdminMsgBySchedule(){                                              
             }
             return;
         }
-        var adminChatArr=res;                                                                                    logger.info(adminChatArr.length + " ADMINS WAS FOUND IN DATABASE");
+        var adminChatArr=res;                                                                                    
         makeUnconfirmedDocsMsg(function(err,adminMsg){
             if(err) {
                 logger.error("Failed to make unconfirmed docs msg. Reasopn: "+err);
