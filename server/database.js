@@ -96,7 +96,8 @@ module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){
 
 module.exports.getAdminChatIds=function(callback){
     var request = new mssql.Request();
-    request.query("select TChatID from r_Emps where ShiftPostID=1 and LTRIM(ISNULL(Mobile,''))<>'' and LTRIM(ISNULL(TChatID,''))<>''",
+    request.query("select EmpID, EmpName, ShiftPostID, Mobile, TChatID from r_Emps " +
+        "where ShiftPostID=1 and LTRIM(ISNULL(Mobile,''))<>'' and LTRIM(ISNULL(TChatID,''))<>''",
         function(err,res){
             if(err){
                 callback(err);
@@ -327,7 +328,7 @@ module.exports.getDailySalesRetUsersByPhone=function(phoneNumArr, callback){
     }
     phoneStr=phoneStr+")";
     var request = new mssql.Request();
-    var queryStr="select TChatID from r_Emps where ShiftPostID=1 AND Mobile in " + phoneStr;
+    var queryStr="select EmpID, EmpName, ShiftPostID, Mobile, TChatID from r_Emps where ShiftPostID=1 AND Mobile in " + phoneStr;
     request.query(queryStr,
         function(err,res){
             if(err){

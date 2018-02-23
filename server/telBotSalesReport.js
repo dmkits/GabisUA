@@ -19,8 +19,8 @@ function startSendingSalesAndReturnsMsgBySchedule(appConfig){                   
 };
 module.exports.startSendingSalesAndReturnsMsgBySchedule=startSendingSalesAndReturnsMsgBySchedule;
 
-function sendSalesAndReturnsMsg(dailySalesRetUsers){                                 logger.info("SENDING SALES AND RETURNS REPORTS MSG BY SCHEDULE...");
-    database.getDailySalesRetUsersByPhone(dailySalesRetUsers, function(err,res){
+function sendSalesAndReturnsMsg(dailySalesRetUsers){                                                                logger.info("SENDING SALES AND RETURNS REPORTS MSG BY SCHEDULE...");
+    database.getDailySalesRetUsersByPhone(dailySalesRetUsers, function(err,res){                                    logger.info(res.length + " CHIEFS WAS FOUND IN DATABASE");
         if(err) {
             logger.error("FAILED to get user chat ID for daily sales and returns msg. Reason: " + err);
             if (err.name == 'ConnectionError') {
@@ -44,13 +44,14 @@ function sendSalesAndReturnsMsg(dailySalesRetUsers){                            
     });
 }
 
-function sendSalesAndReturnsMsgRecursively(index,SalesAndReturnsMsg, msg){
-    if(!SalesAndReturnsMsg[index]) return;
-    var TChatID=SalesAndReturnsMsg[index].TChatID;
-    logger.info("Daily sales and returns msg is sending to admin by schedule. Chat ID: "+TChatID);
+function sendSalesAndReturnsMsgRecursively(index,chiefArray, msg){
+    if(!chiefArray[index]) return;
+    var chief=chiefArray[index];
+    logger.info("Daily sales and returns msg is sending to "+chief["EmpName"]+" (EmpID:"+chief["EmpID"] +") TChatID:" +
+        + chief["TChatID"]+" ("+chief["Mobile"]+")" );
     setTimeout(function () {
-        bot.sendMessage(TChatID, msg, {parse_mode:"HTML"},300);
-        sendSalesAndReturnsMsgRecursively(index+1,SalesAndReturnsMsg, msg);
+        bot.sendMessage(chief.TChatID, msg, {parse_mode:"HTML"},300);
+        sendSalesAndReturnsMsgRecursively(index+1,chiefArray, msg);
     });
 }
 

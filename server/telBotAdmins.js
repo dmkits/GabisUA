@@ -27,7 +27,7 @@ function sendAdminMsgBySchedule(){                                              
             }
             return;
         }
-        var adminChatArr=res;
+        var adminChatArr=res;                                                                                    logger.info(adminChatArr.length + " ADMINS WAS FOUND IN DATABASE");
         makeUnconfirmedDocsMsg(function(err,adminMsg){
             if(err) {
                 logger.error("Failed to make unconfirmed docs msg. Reasopn: "+err);
@@ -38,12 +38,13 @@ function sendAdminMsgBySchedule(){                                              
     });
 }
 
-function sendMessageToAdminsRecursively(index, adminArray,adminMsg){
+function sendMessageToAdminsRecursively(index, adminArray, adminMsg){
     if(!adminArray[index]) return;
-    var TChatID=adminArray[index].TChatID;
-        logger.info("Unconfirmed docs msg is sending to admin by schedule. Chat ID: "+TChatID);
+    var admin=adminArray[index];
+        logger.info("Unconfirmed docs msg is sending to admin "+admin["EmpName"]+" (EmpID:"+admin["EmpID"] +") TChatID:" +
+            + admin["TChatID"]+" ("+admin["Mobile"]+")");
         setTimeout(function(){
-            bot.sendMessage(TChatID, adminMsg, {parse_mode:"HTML"});
+            bot.sendMessage(admin["TChatID"], adminMsg, {parse_mode:"HTML"});
             sendMessageToAdminsRecursively(index+1, adminArray,adminMsg)
         },300);
 }

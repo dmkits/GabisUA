@@ -91,6 +91,7 @@ function getReturnedTExcMsgByStockId(stockID, callback){
         callback(null,msg);
     });
 }
+var sestSendChIDObj={};
 function getTSestMsgByStockId(stockID, callback){
     var msg="";
     database.getTSestByStockId(stockID,function(err,res) {
@@ -111,7 +112,7 @@ function getTSestMsgByStockId(stockID, callback){
     });
 }
 
-module.exports.makeCashierMsg=function(cashierData, callback){
+function makeCashierMsg(cashierData, callback){
     var stockID=cashierData["StockID"];
     var StockName=cashierData["StockName"];
     var CRName=cashierData["CRName"];
@@ -151,8 +152,6 @@ module.exports.makeCashierMsg=function(cashierData, callback){
     })
 };
 
-var sestSendChIDObj={};
-
 function sendCashierMsgRecursively(index, cashierDataArr, scheduleCall, callback){
     if(!cashierDataArr[index]){
         if(callback)callback();
@@ -167,18 +166,25 @@ function sendCashierMsgRecursively(index, cashierDataArr, scheduleCall, callback
     }
     var cashierData=cashierDataArr[index];
     var TChatID=cashierDataArr[index]["TChatID"];
-    module.exports.makeCashierMsg(cashierData, function(err, resMsg){
+    makeCashierMsg(cashierData, function(err, resMsg){
         if(err){
-            logger.error("FAILED to create msg for cashier. Reason: "+err);
+            logger.error("FAILED to create msg for cashier "+cashierData["EmpName"]+" (EmpID:"+cashierData["EmpID"] +") TChatID:" +
+                + cashierData["TChatID"]+" ("+cashierData["Mobile"]+"). Reason: "+err);
+            sendCashierMsgRecursively(index+1,cashierDataArr,scheduleCall,callback);
             return;
         }
-        if(resMsg)
-            setTimeout(function () {
-                logger.info("Try to send msg to cashier "+cashierDataArr[index]["EmpName"]+" (EmpID:"+cashierDataArr[index]["EmpID"] +") TChatID:" +
-                    + cashierDataArr[index]["TChatID"]+" ("+cashierDataArr[index]["Mobile"]+") ");
-                bot.sendMessage(TChatID, resMsg, {parse_mode:"HTML"});
-                sendCashierMsgRecursively(index+1,cashierDataArr,scheduleCall,callback);
-            },300);
+        if(!resMsg){
+            logger.info("No msg data for cashier "+cashierData["EmpName"]+" (EmpID:"+cashierData["EmpID"] +") TChatID:" +
+                + cashierData["TChatID"]+" ("+cashierData["Mobile"]+").");
+            sendCashierMsgRecursively(index+1,cashierDataArr,scheduleCall,callback);
+            return;
+        }
+        setTimeout(function () {
+            logger.info("Cashier msg is sending to "+cashierData["EmpName"]+" (EmpID:"+cashierData["EmpID"] +") TChatID:" +
+                + cashierData["TChatID"]+" ("+cashierData["Mobile"]+") ");
+            bot.sendMessage(TChatID, resMsg, {parse_mode:"HTML"});
+            sendCashierMsgRecursively(index+1,cashierDataArr,scheduleCall,callback);
+        },300);
     });
 };
 

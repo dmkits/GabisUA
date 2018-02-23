@@ -8,12 +8,12 @@ var cron = require('node-cron');
 var moment = require('moment');
 var configObj=database.getAppConfig();
 
-function sendMsgToSysadmins(msg){                                            logger.info("SENDING SYSADMIN MSG BY SCHEDULE...");
+function sendMsgToSysadmins(msg){                                                                                       logger.info("SENDING SYSADMIN MSG BY SCHEDULE...");
     database.getDbConnectionError(function(dbConnectionError){
         var reconBut=false;
         if(dbConnectionError)reconBut=true;
         try{
-            var admins = JSON.parse(fs.readFileSync(path.join(__dirname, '../sysadmins.json')));
+            var admins = JSON.parse(fs.readFileSync(path.join(__dirname, '../sysadmins.json')));                        logger.info(Object.keys(admins). length +" SYSADMINS WAS FOUND");
         }catch(e){
             logger.error("FAILED to get admin list. Reason: "+e);
             return;
@@ -27,27 +27,26 @@ function sendMsgToSysadminsRecursively(index, sysadminsArray,msg,reconBut){
     var admin=sysadminsArray[index];
     for(var h in admin){
         var adminChatId=admin[h];
-        if(adminChatId){
-            if(reconBut){
-                logger.warn("DB connection failed. Sending msg to sysadmin. Chat ID: "+adminChatId);
-                setTimeout(function () {
-                    bot.sendMessage(adminChatId, msg,
-                        {parse_mode:"HTML",
-                            reply_markup: {
-                                keyboard: [
-                                    ['Подключиться к БД']
-                                ]}
-                        });
-                },300);
-                sendMsgToSysadminsRecursively(index+1, sysadminsArray,msg,reconBut);
-            }else{
-                logger.info("Sending msg to sysadmin. Chat ID: "+ adminChatId);
-                setTimeout(function () {
-                    bot.sendMessage(adminChatId, msg, {parse_mode:"HTML", reply_markup: {remove_keyboard: true}});
-                    sendMsgToSysadminsRecursively(index+1, sysadminsArray,msg,reconBut);
-                },300);
-            }
+        if(!adminChatId) return;
+        if(reconBut){
+            logger.warn("DB connection failed. Sending msg to sysadmin. Chat ID: "+adminChatId);
+            setTimeout(function () {
+                bot.sendMessage(adminChatId, msg,
+                    {parse_mode:"HTML",
+                        reply_markup: {
+                            keyboard: [
+                                ['Подключиться к БД']
+                            ]}
+                    });
+            },300);
+            sendMsgToSysadminsRecursively(index+1, sysadminsArray,msg,reconBut);
+            return;
         }
+        logger.info("Sending msg to sysadmin. Chat ID: "+ adminChatId);
+        setTimeout(function () {
+            bot.sendMessage(adminChatId, msg, {parse_mode:"HTML", reply_markup: {remove_keyboard: true}});
+            sendMsgToSysadminsRecursively(index+1, sysadminsArray,msg,reconBut);
+        },300);
     }
 }
 
