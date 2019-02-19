@@ -73,7 +73,7 @@ function makeUnconfirmedDocsMsg (callback){
             }
             var tExpArr=res;
             if(tExpArr.length==0) {
-                adminMsg+="\n<b>Все  накладные перемещения подтверждены.</b>";
+                adminMsg+="\n<b>Все накладные перемещения подтверждены.</b>";
             }else{
                 adminMsg+="\n<b>Неподтвержденные накладные перемещения:</b>";
                 for (var k in tExpArr){

@@ -71,7 +71,6 @@ function connectToDBRecursively(index, callingFuncMsg, callback){
 }
 module.exports.connectToDBRecursively=connectToDBRecursively;
 
-
 module.exports.checkPhoneAndWriteChatID=function(phoneNum, chatId, callback){
     var request = new mssql.Request();
     request.input('Mobile', phoneNum);
@@ -115,8 +114,8 @@ module.exports.getUnconfirmedTRecData=function(callback){        //Unconfirmed p
     var request = new mssql.Request();
     request.query("select m.StockID, st.StockName, Count(1) as Total " +
         "from t_Rec m " +
-        "inner join r_Stocks st on st.StockID=m.StockID" +
-        " where m.StateCode=50" +
+        "inner join r_Stocks st on st.StockID=m.StockID " +
+        "where m.StateCode=50 " +
         "group by m.StockID, st.StockName " +
         "order by m.StockID",
         function(err,res){
@@ -132,8 +131,8 @@ module.exports.getReturnedTRecData=function(callback){           //Returned pinv
     var request = new mssql.Request();
     request.query("select m.StockID, st.StockName, Count(1) as Total " +
         "from t_Rec m " +
-        "inner join r_Stocks st on st.StockID=m.StockID" +
-        " where m.StateCode=52" +
+        "inner join r_Stocks st on st.StockID=m.StockID " +
+        "where m.StateCode=52 " +
         "group by m.StockID, st.StockName " +
         "order by m.StockID",
         function(err,res){
@@ -167,7 +166,7 @@ module.exports.getReturnedTExcData=function(callback){                          
     request.query("select m.NewStockID, st.StockName, Count(1) as Total " +
         "from t_Exc m " +
         "inner join r_Stocks st on st.StockID=m.NewStockID " +
-        "where m.StateCode=58 " +
+        "where m.StateCode in (52,58) " +
         "group by m.NewStockID, st.StockName " +
         "order by m.NewStockID",
         function(err,res){
@@ -243,7 +242,7 @@ module.exports.getReturnedTExcByStockId=function(stockID, callback){
     request.input('StockID', stockID);
     request.query("select m.DocID, m.DocDate, m.OurID, m.Notes " +
         "from t_Exc m " +
-        "where m.StateCode = 58  " +
+        "where m.StateCode in (52,58) " +
         "and m.StockID=@StockID "+
         "order by m.DocDate, m.DocID",
         function(err,res){
